@@ -1,0 +1,5 @@
+<!--pages/app/webview/index.wxml-->
+<web-view
+    src="{{src}}"
+    style="width:100%; height:100vh;"
+   ></web-view>

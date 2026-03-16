@@ -1,0 +1,13 @@
+/* pages/app/sass/index.wxss */
+.sass{
+  color: hotpink;
+  font-size: larger;
+  text-align: center;
+  font-style: italic;
+  &::before{
+    content:'《'
+  }
+  &::after{
+    content: '》';
+  }
+}

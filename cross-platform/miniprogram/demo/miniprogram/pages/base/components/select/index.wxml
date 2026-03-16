@@ -1,0 +1,16 @@
+<view class="select-container">
+  <view class="select-input" bindtap="toggleDropdown">
+    <text>{{selectedOption || placeholder}}</text>
+    <image src="/assets/images/discover.png" mode="aspectFit" class="arrow {{showDropdown ? 'rotate' : ''}}"></image>
+  </view>
+
+  <view class="dropdown-menu" style="height: 300rpx;" wx:if="{{showDropdown}}">
+    <scroll-view scroll-y class="dropdown-list">
+      <block wx:for="{{options}}" wx:key="value">
+        <view class="dropdown-item {{item.value === value ? 'active' : ''}}" bindtap="handleSelect" data-value="{{item.value}}" data-label="{{item.label}}">
+          {{item.label}}
+        </view>
+      </block>
+    </scroll-view>
+  </view>
+</view>

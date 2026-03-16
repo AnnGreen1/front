@@ -1,0 +1,2 @@
+<!--pages/app/login/index.wxml-->
+<t-navbar left-arrow title="wx.login" />

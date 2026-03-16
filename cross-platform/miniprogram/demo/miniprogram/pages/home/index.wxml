@@ -1,0 +1,9 @@
+<!--pages/home/index.wxml-->
+<!--pages/app/index.wxml-->
+<view class="home">
+  <t-navbar t-class-placeholder="t-navbar-placeholder" t-class-content="t-navbar-content" title="home"
+    t-class-title="nav-title" />
+  <scroll-view scroll-y class="app">
+    <t-cell title="事件传参" url="/pages/app/event/index" hover arrow />
+  </scroll-view>
+</view>

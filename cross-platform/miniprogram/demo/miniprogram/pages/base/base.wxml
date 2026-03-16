@@ -1,0 +1,25 @@
+<view>
+  <view class="container">
+    <select-comp id="mySelect" options="{{options}}" value="{{selectedValue}}" placeholder="请选择城市" bind:change="onSelectChange" />
+
+    <view class="result">您选择的是：{{selectedLabel}}</view>
+  </view>
+
+
+  <view class="container" bindtap="handlePageTap">
+    <view class="form-item">
+      <text class="label">城市选择：</text>
+      <select-dropdown id="citySelect" options="{{cityOptions}}" value="{{selectedCity}}" placeholder="请选择城市" bind:change="onCityChange" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">职业选择：</text>
+      <select-dropdown id="jobSelect" options="{{jobOptions}}" value="{{selectedJob}}" placeholder="请选择职业" bind:change="onJobChange" />
+    </view>
+
+    <view class="result">
+      <text>您选择的是：{{selectedCityLabel}}的{{selectedJobLabel}}</text>
+    </view>
+  </view>
+
+</view>

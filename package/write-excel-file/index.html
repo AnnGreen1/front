@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script src="https://unpkg.com/write-excel-file@1.x/bundle/write-excel-file.min.js"></script>
+
+    <script>
+      const HEADER_ROW = [
+        {
+          value: "Name",
+          fontWeight: "bold",
+        },
+        {
+          value: "Date of Birth",
+          fontWeight: "bold",
+        },
+        {
+          value: "Cost",
+          fontWeight: "bold",
+        },
+        {
+          value: "Paid",
+          fontWeight: "bold",
+        },
+      ];
+
+      const DATA_ROW_1 = [
+        // "Name"
+        {
+          type: String,
+          value: "John Smith",
+        },
+
+        // "Date of Birth"
+        {
+          type: Date,
+          value: new Date(),
+          format: "mm/dd/yyyy",
+        },
+
+        // "Cost"
+        {
+          type: Number,
+          value: 1800,
+        },
+
+        // "Paid"
+        {
+          type: Boolean,
+          value: true,
+        },
+      ];
+
+      const data = [HEADER_ROW, DATA_ROW_1];
+
+      writeXlsxFile(data, {
+        fileName: "file.xlsx",
+      });
+    </script>
+  </body>
+</html>

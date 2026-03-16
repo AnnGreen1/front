@@ -1,0 +1,4 @@
+<!--pages/app/page-style/index.wxml-->
+<t-navbar left-arrow title="page style" />
+
+<grid-comp></grid-comp>

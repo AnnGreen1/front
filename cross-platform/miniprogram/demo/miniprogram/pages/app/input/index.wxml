@@ -1,0 +1,5 @@
+<!--pages/app/input/index.wxml-->
+<view class="input">
+  <input value="{{value}}" auto-focus placeholder="将会获取焦点" />
+  <button bindtap="navigateTo">navigateTo pages/app/checkbox/index.wxml</button>
+</view>

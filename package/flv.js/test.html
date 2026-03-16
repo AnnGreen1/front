@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLV.js 演示与测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/flv.js@latest/dist/flv.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        @media (max-width: 900px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .player-section {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .info-section {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .video-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        #videoElement {
+            width: 100%;
+            display: block;
+            max-height: 400px;
+        }
+        
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            background: #ff3742;
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: #3742fa;
+        }
+        
+        .btn-secondary:hover {
+            background: #2f36e0;
+        }
+        
+        .progress-container {
+            flex: 1;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            cursor: pointer;
+            position: relative;
+            min-width: 200px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: #ff4757;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.1s;
+        }
+        
+        .time-display {
+            font-size: 0.9rem;
+            color: #ddd;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .volume-slider {
+            width: 100px;
+        }
+        
+        h2 {
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            color: #ffd700;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            margin: 20px 0 15px;
+            color: #ffd700;
+        }
+        
+        .stream-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .stream-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .stream-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-3px);
+        }
+        
+        .stream-item.active {
+            border-color: #ff4757;
+            background: rgba(255, 71, 87, 0.2);
+        }
+        
+        .stream-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .stream-desc {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .feature-list {
+            list-style-type: none;
+            margin-bottom: 25px;
+        }
+        
+        .feature-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+        }
+        
+        .feature-list li:before {
+            content: "✓";
+            color: #4cd137;
+            font-weight: bold;
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+        
+        .code-block {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 18px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 20px 0;
+            line-height: 1.5;
+            font-size: 0.9rem;
+            border-left: 4px solid #ff4757;
+        }
+        
+        .status {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .success {
+            background: rgba(76, 209, 55, 0.2);
+            border: 1px solid #4cd137;
+        }
+        
+        .error {
+            background: rgba(255, 71, 87, 0.2);
+            border: 1px solid #ff4757;
+        }
+        
+        .info {
+            background: rgba(55, 66, 250, 0.2);
+            border: 1px solid #3742fa;
+        }
+        
+        .url-input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+        
+        .url-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 0 2px #ff4757;
+        }
+        
+        .tech-details {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        
+        .tech-details h3 {
+            color: #ffd700;
+            margin-top: 0;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .progress-container {
+                min-width: 100%;
+            }
+        }
+        
+        .live-badge {
+            background: #ff4757;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FLV.js 演示与测试</h1>
+            <p class="subtitle">体验纯JavaScript实现的FLV播放器，无需Flash插件，支持低延迟直播和视频播放</p>
+        </header>
+        
+        <div class="content">
+            <section class="player-section">
+                <h2>FLV 播放器</h2>
+                
+                <div class="video-container">
+                    <video id="videoElement"></video>
+                </div>
+                
+                <div class="controls">
+                    <button id="playBtn" class="btn">
+                        <span>▶</span> 播放
+                    </button>
+                    <button id="pauseBtn" class="btn">
+                        <span>⏸</span> 暂停
+                    </button>
+                    
+                    <div class="progress-container" id="progressContainer">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                    
+                    <div class="time-display">
+                        <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+                    </div>
+                    
+                    <div class="volume-container">
+                        <span>🔊</span>
+                        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.1" value="1">
+                    </div>
+                </div>
+                
+                <h3>测试视频流</h3>
+                <div class="stream-list" id="streamList">
+                    <!-- 测试流将通过JavaScript动态添加 -->
+                </div>
+                
+                <h3>自定义视频源</h3>
+                <input type="text" id="videoUrl" class="url-input" placeholder="输入FLV视频流URL">
+                <button id="loadBtn" class="btn btn-secondary">加载自定义视频流</button>
+                
+                <div id="status" class="status info">
+                    请选择一个测试视频流或输入自定义URL
+                </div>
+            </section>
+            
+            <section class="info-section">
+                <h2>FLV.js 是什么？</h2>
+                <p>FLV.js 是一个由 Bilibili 开源的纯 JavaScript 实现的 FLV 播放器。它的工作原理是将 FLV 文件流转换为 ISO BMFF（Fragmented MP4）片段，然后通过 Media Source Extensions 将 MP4 片段提供给 HTML5 video 元素。</p>
+                
+                <h3>主要特性</h3>
+                <ul class="feature-list">
+                    <li>纯 JavaScript 实现，无需 Flash 插件</li>
+                    <li>支持 HTTP FLV 直播流和点播播放</li>
+                    <li>低延迟，高性能</li>
+                    <li>支持 H.264 视频编码和 AAC/MP3 音频编码</li>
+                    <li>兼容现代浏览器（Chrome, Firefox, Safari, Edge）</li>
+                    <li>支持 MSE (Media Source Extensions) 技术</li>
+                    <li>开源且免费使用</li>
+                </ul>
+                
+                <h3>基本使用方法</h3>
+                <div class="code-block">
+// 检查浏览器是否支持 FLV.js
+if (flvjs.isSupported()) {
+    // 获取 video 元素
+    const videoElement = document.getElementById('videoElement');
+    
+    // 创建 FLV 播放器
+    const flvPlayer = flvjs.createPlayer({
+        type: 'flv',
+        url: 'http://example.com/live.stream.flv',
+        isLive: true  // 如果是直播流
+    });
+    
+    // 附加到 video 元素
+    flvPlayer.attachMediaElement(videoElement);
+    
+    // 加载视频
+    flvPlayer.load();
+    
+    // 播放视频
+    flvPlayer.play();
+}
+                </div>
+                
+                <div class="tech-details">
+                    <h3>技术细节</h3>
+                    <p>FLV.js 通过 JavaScript 解析 FLV 格式，提取其中的音视频数据，然后通过 Media Source Extensions API 将数据传递给 HTML5 video 元素进行播放。这种方式使得在不支持 Flash 的现代浏览器中播放 FLV 内容成为可能。</p>
+                    <p>FLV.js 特别适合低延迟直播场景，因为 HTTP-FLV 协议相比于 HLS 具有更低的延迟特性。</p>
+                </div>
+            </section>
+        </div>
+        
+        <footer>
+            <p>FLV.js 演示页面 &copy; 2023 | 使用 flv.js 版本 <span id="flvVersion">加载中...</span></p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取DOM元素
+            const videoElement = document.getElementById('videoElement');
+            const playBtn = document.getElementById('playBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const progressBar = document.getElementById('progressBar');
+            const progressContainer = document.getElementById('progressContainer');
+            const volumeSlider = document.getElementById('volumeSlider');
+            const videoUrl = document.getElementById('videoUrl');
+            const loadBtn = document.getElementById('loadBtn');
+            const status = document.getElementById('status');
+            const currentTime = document.getElementById('currentTime');
+            const duration = document.getElementById('duration');
+            const streamList = document.getElementById('streamList');
+            const flvVersion = document.getElementById('flvVersion');
+            
+            let flvPlayer = null;
+            let isLiveStream = false;
+            
+            // 显示FLV.js版本
+            if (flvjs && flvjs.version) {
+                flvVersion.textContent = flvjs.version;
+            }
+            
+            // 测试视频流列表
+            const testStreams = [
+                {
+                    name: "B站演示视频 (点播)",
+                    url: "https://sf1-hscdn-tos.pstatp.com/obj/media-fe/xgplayer_doc_video/flv/xgplayer-demo-360p.flv",
+                    description: "B站官方提供的演示FLV视频",
+                    type: "vod"
+                },
+                {
+                    name: "示例直播流 (直播)",
+                    url: "http://example.com/live.flv",
+                    description: "示例直播流地址（可能需要替换为实际可用的直播源）",
+                    type: "live"
+                }
+            ];
+            
+            // 动态生成测试流列表
+            testStreams.forEach((stream, index) => {
+                const streamItem = document.createElement('div');
+                streamItem.className = 'stream-item';
+                if (index === 0) streamItem.classList.add('active');
+                
+                streamItem.innerHTML = `
+                    <div class="stream-name">
+                        ${stream.name}
+                        ${stream.type === 'live' ? '<span class="live-badge">直播</span>' : ''}
+                    </div>
+                    <div class="stream-desc">${stream.description}</div>
+                `;
+                
+                streamItem.addEventListener('click', () => {
+                    // 移除其他项的active类
+                    document.querySelectorAll('.stream-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    // 添加当前项的active类
+                    streamItem.classList.add('active');
+                    
+                    // 加载选中的流
+                    loadStream(stream.url, stream.type === 'live');
+                });
+                
+                streamList.appendChild(streamItem);
+            });
+            
+            // 默认加载第一个测试流
+            if (testStreams.length > 0) {
+                loadStream(testStreams[0].url, testStreams[0].type === 'live');
+            }
+            
+            // 加载视频流
+            function loadStream(url, isLive = false) {
+                // 如果已有播放器实例，先销毁
+                if (flvPlayer) {
+                    flvPlayer.destroy();
+                    flvPlayer = null;
+                }
+                
+                // 检查浏览器支持
+                if (!flvjs.isSupported()) {
+                    status.textContent = '您的浏览器不支持 FLV.js';
+                    status.className = 'status error';
+                    return;
+                }
+                
+                try {
+                    // 创建FLV播放器
+                    flvPlayer = flvjs.createPlayer({
+                        type: 'flv',
+                        url: url,
+                        isLive: isLive
+                    }, {
+                        enableWorker: true,
+                        enableStashBuffer: false,
+                        stashInitialSize: 128,
+                    });
+                    
+                    // 附加到video元素
+                    flvPlayer.attachMediaElement(videoElement);
+                    
+                    // 加载视频
+                    flvPlayer.load();
+                    
+                    isLiveStream = isLive;
+                    
+                    status.textContent = isLive ? 
+                        '直播流加载成功！点击播放按钮开始播放' : 
+                        '视频流加载成功！点击播放按钮开始播放';
+                    status.className = 'status success';
+                    
+                    // 设置事件监听
+                    setupPlayerEvents();
+                    
+                } catch (error) {
+                    status.textContent = '加载视频流失败: ' + error.message;
+                    status.className = 'status error';
+                    console.error(error);
+                }
+            }
+            
+            // 设置播放器事件
+            function setupPlayerEvents() {
+                // 播放进度更新
+                videoElement.addEventListener('timeupdate', updateProgress);
+                
+                // 视频加载完成
+                videoElement.addEventListener('loadedmetadata', function() {
+                    if (!isLiveStream) {
+                        duration.textContent = formatTime(videoElement.duration);
+                    } else {
+                        duration.textContent = '直播';
+                    }
+                    status.textContent = '视频已加载，准备播放';
+                    status.className = 'status success';
+                });
+                
+                // 播放错误
+                videoElement.addEventListener('error', function() {
+                    status.textContent = '播放错误: ' + (videoElement.error ? videoElement.error.message : '未知错误');
+                    status.className = 'status error';
+                });
+                
+                // FLV播放器特定事件
+                flvPlayer.on(flvjs.Events.ERROR, function(errorType, errorDetail, errorInfo) {
+                    console.error('FLV.js 错误:', errorType, errorDetail, errorInfo);
+                    status.textContent = `播放错误: ${errorType} - ${errorDetail}`;
+                    status.className = 'status error';
+                });
+            }
+            
+            // 更新进度条和时间显示
+            function updateProgress() {
+                if (!isLiveStream && videoElement.duration) {
+                    const progressPercent = (videoElement.currentTime / videoElement.duration) * 100;
+                    progressBar.style.width = `${progressPercent}%`;
+                    currentTime.textContent = formatTime(videoElement.currentTime);
+                } else if (isLiveStream) {
+                    currentTime.textContent = '直播';
+                }
+            }
+            
+            // 格式化时间显示
+            function formatTime(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            }
+            
+            // 点击进度条跳转（仅限点播）
+            progressContainer.addEventListener('click', function(e) {
+                if (isLiveStream || !videoElement.duration) return;
+                
+                const rect = progressContainer.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                videoElement.currentTime = percent * videoElement.duration;
+            });
+            
+            // 播放/暂停控制
+            playBtn.addEventListener('click', function() {
+                if (flvPlayer && !videoElement.paused) return;
+                
+                if (flvPlayer) {
+                    videoElement.play().catch(e => {
+                        status.textContent = '播放失败: ' + e.message;
+                        status.className = 'status error';
+                    });
+                } else {
+                    status.textContent = '请先加载视频流';
+                    status.className = 'status error';
+                }
+            });
+            
+            pauseBtn.addEventListener('click', function() {
+                if (flvPlayer) {
+                    videoElement.pause();
+                }
+            });
+            
+            // 音量控制
+            volumeSlider.addEventListener('input', function() {
+                videoElement.volume = volumeSlider.value;
+            });
+            
+            // 加载自定义URL
+            loadBtn.addEventListener('click', function() {
+                const url = videoUrl.value.trim();
+                if (!url) {
+                    status.textContent = '请输入有效的FLV视频流URL';
+                    status.className = 'status error';
+                    return;
+                }
+                
+                // 简单判断是否为直播流
+                const isLive = url.includes('live') || url.includes('stream');
+                loadStream(url, isLive);
+            });
+            
+            // 页面卸载前销毁播放器
+            window.addEventListener('beforeunload', function() {
+                if (flvPlayer) {
+                    flvPlayer.destroy();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

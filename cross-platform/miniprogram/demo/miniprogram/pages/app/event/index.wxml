@@ -1,0 +1,6 @@
+<!--pages/app/event/index.wxml-->
+<t-navbar left-arrow title="event" />
+<view class="app-event">
+  <button bind:tap="onTap">button</button>
+  <button wx:for="{{list}}" bind:tap="hi" data-name="{{item}}">hi,{{item}}</button>
+</view>

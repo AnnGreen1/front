@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B站视频播放技术详解</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #00a1d6, #fb7299);
+            color: #333;
+            min-height: 100vh;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: #00a1d6;
+            margin-bottom: 15px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #666;
+        }
+        
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 40px auto;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #00a1d6;
+            transform: translateX(-50%);
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 40px;
+            width: 50%;
+            padding: 20px;
+        }
+        
+        .timeline-item:nth-child(odd) {
+            left: 0;
+        }
+        
+        .timeline-item:nth-child(even) {
+            left: 50%;
+        }
+        
+        .timeline-content {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .timeline-item:nth-child(odd) .timeline-content::after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: 20px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid #f8f9fa;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+        }
+        
+        .timeline-item:nth-child(even) .timeline-content::after {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 20px;
+            width: 0;
+            height: 0;
+            border-right: 10px solid #f8f9fa;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+        }
+        
+        .timeline-year {
+            font-weight: bold;
+            color: #00a1d6;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .tech-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #00a1d6;
+        }
+        
+        .tech-card h3 {
+            color: #00a1d6;
+            margin-bottom: 15px;
+        }
+        
+        .current-status {
+            background: #e3f2fd;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 30px 0;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .feature-list {
+            list-style: none;
+            margin: 15px 0;
+        }
+        
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .feature-list li:before {
+            content: "•";
+            color: #00a1d6;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .timeline::before {
+                left: 30px;
+            }
+            
+            .timeline-item {
+                width: 100%;
+                left: 0 !important;
+                padding-left: 60px;
+            }
+            
+            .timeline-content::after {
+                display: none;
+            }
+            
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>B站视频播放技术演进</h1>
+            <p class="subtitle">从Flash到HTML5，从FLV.js到现代播放器</p>
+        </header>
+
+        <div class="current-status">
+            <h2>当前状态总结</h2>
+            <p><strong>B站目前主要使用MP4和HLS格式，FLV.js已基本不再使用</strong></p>
+            <ul class="feature-list">
+                <li><strong>点播视频</strong>: 主要使用MP4格式 + 原生HTML5 Video</li>
+                <li><strong>直播</strong>: 主要使用HLS和HTTP-FLV，但播放器已升级</li>
+                <li><strong>FLV.js</strong>: 主要用于兼容老设备和特定场景</li>
+            </ul>
+        </div>
+
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <div class="timeline-year">2014年以前</div>
+                    <h3>Flash时代</h3>
+                    <ul class="feature-list">
+                        <li>使用Adobe Flash Player</li>
+                        <li>视频格式为FLV</li>
+                        <li>需要浏览器安装Flash插件</li>
+                        <li>兼容性好但性能较差</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <div class="timeline-year">2015-2017</div>
+                    <h3>FLV.js诞生</h3>
+                    <ul class="feature-list">
+                        <li>B站开源FLV.js项目</li>
+                        <li>纯JavaScript实现的FLV播放器</li>
+                        <li>解决Flash被淘汰的问题</li>
+                        <li>支持直播低延迟</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <div class="timeline-year">2018-2020</div>
+                    <h3>技术转型期</h3>
+                    <ul class="feature-list">
+                        <li>逐步转向MP4和HLS</li>
+                        <li>FLV.js用于直播和兼容老设备</li>
+                        <li>开发自研播放器内核</li>
+                        <li>支持更多视频编码格式</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <div class="timeline-year">2021至今</div>
+                    <h3>现代播放器时代</h3>
+                    <ul class="feature-list">
+                        <li>全面使用MP4格式点播</li>
+                        <li>直播使用HLS和HTTP-FLV</li>
+                        <li>自研播放器支持多种格式</li>
+                        <li>FLV.js仅用于特定场景</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="tech-grid">
+            <div class="tech-card">
+                <h3>FLV.js的贡献</h3>
+                <ul class="feature-list">
+                    <li>推动Web视频技术发展</li>
+                    <li>解决Flash淘汰的过渡方案</li>
+                    <li>开源项目，促进技术共享</li>
+                    <li>低延迟直播技术积累</li>
+                </ul>
+            </div>
+            
+            <div class="tech-card">
+                <h3>当前技术栈</h3>
+                <ul class="feature-list">
+                    <li>HTML5 Video + 自研播放器</li>
+                    <li>MP4点播 + HLS直播</li>
+                    <li>支持AV1、HEVC等新编码</li>
+                    <li>智能码率切换</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="comparison">
+            <div>
+                <h3>FLV.js使用场景（历史）</h3>
+                <ul class="feature-list">
+                    <li>直播低延迟需求</li>
+                    <li>老旧设备兼容</li>
+                    <li>特定编码格式支持</li>
+                    <li>过渡期解决方案</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3>当前技术优势</h3>
+                <ul class="feature-list">
+                    <li>更好的浏览器兼容性</li>
+                    <li>更低的CPU占用</li>
+                    <li>更好的移动端支持</li>
+                    <li>更丰富的功能特性</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="code-block">
+// B站当前播放器技术示例（简化版）
+class BilibiliPlayer {
+    constructor() {
+        this.formats = {
+            '点播': ['mp4', 'dash'],
+            '直播': ['hls', 'http-flv'],
+            '备用': ['flv']  // 仅用于兼容
+        };
+        
+        this.preferredFormat = this.detectBestFormat();
+    }
+    
+    detectBestFormat() {
+        // 现代浏览器优先使用MP4和HLS
+        if (this.isModernBrowser()) {
+            return this.supportsMSE() ? 'mp4' : 'hls';
+        }
+        // 老旧浏览器使用FLV作为备选
+        return 'flv';
+    }
+    
+    loadVideo(url, format) {
+        switch(format) {
+            case 'mp4':
+                this.loadMP4(url);
+                break;
+            case 'hls':
+                this.loadHLS(url);
+                break;
+            case 'flv':
+                // 仅在必要时使用FLV.js
+                this.loadFLV(url);
+                break;
+        }
+    }
+}
+        </div>
+
+        <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3>技术验证方法</h3>
+            <p>要验证B站当前使用的技术，可以：</p>
+            <ol style="margin-left: 20px;">
+                <li>打开浏览器开发者工具</li>
+                <li>进入Network标签页</li>
+                <li>播放B站视频，观察请求的文件类型</li>
+                <li>查看视频URL后缀和响应头信息</li>
+            </ol>
+            <p><strong>实际测试结果：B站现在主要使用.m4s分段MP4文件</strong></p>
+        </div>
+    </div>
+</body>
+</html>

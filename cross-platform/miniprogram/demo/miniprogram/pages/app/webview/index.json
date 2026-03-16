@@ -1,0 +1,7 @@
+{
+  "renderer": "webview",
+  "navigationBarBackgroundColor": "#ffffff",
+  "usingComponents": {
+    "t-navbar": "tdesign-miniprogram/navbar/navbar"
+  }
+}

@@ -1,0 +1,11 @@
+$sassColor: hotpink;
+
+h1 {
+  color: $sassColor;
+}
+
+p {
+  a {
+    color: $sassColor;
+  }
+}

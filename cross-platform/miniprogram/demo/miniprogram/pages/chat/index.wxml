@@ -1,0 +1,4 @@
+<!--pages/chat/index.wxml-->
+<t-navbar t-class-placeholder="t-navbar-placeholder" t-class-content="t-navbar-content" title="chat"
+  t-class-title="nav-title" />
+<button bind:tap="test">test</button>

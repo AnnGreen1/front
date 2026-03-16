@@ -1,0 +1,17 @@
+/* pages/app/safe-area/index.wxss */
+.safe-area {
+  /* 兼容 iOS 11.0-11.1 版本 */
+  padding-top: constant(safe-area-inset-top);
+  /* iOS 11.2+ 版本 */
+  padding-top: env(safe-area-inset-top);
+  /* 添加背景色方便观察效果 */
+  background-color: lightyellow;
+}
+
+/* 添加一个测试元素来更清楚地看到安全区域的效果 */
+.test-safe-area {
+  background-color: lightcoral;
+  height: 100px;
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top);
+}

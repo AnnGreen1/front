@@ -1,0 +1,3 @@
+<!--pages/app/checkbox/index.wxml-->
+<checkbox value="{{value}}" checked="true"/>选中
+<button bindtap="navigateTo">navigateTo pages/app/input/index.wxml</button>

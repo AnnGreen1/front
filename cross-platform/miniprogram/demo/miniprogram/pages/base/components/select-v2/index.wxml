@@ -1,0 +1,16 @@
+<view class="select-container">
+  <view class="select-input" bindtap="toggleDropdown">
+    <text>{{selectedOption || placeholder}}</text>
+    <image src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTcgMTBsNSA1IDUtNXoiIGZpbGw9IiM2NjYiLz48L3N2Zz4=" mode="aspectFit" class="arrow {{showDropdown ? 'rotate' : ''}}"></image>
+  </view>
+
+  <view class="dropdown-menu" wx:if="{{showDropdown}}">
+    <scroll-view scroll-y class="dropdown-list">
+      <block wx:for="{{options}}" wx:key="value">
+        <view class="dropdown-item {{item.value === value ? 'active' : ''}}" bindtap="handleSelect" data-value="{{item.value}}" data-label="{{item.label}}">
+          {{item.label}}
+        </view>
+      </block>
+    </scroll-view>
+  </view>
+</view>

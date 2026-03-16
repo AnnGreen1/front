@@ -1,0 +1,26 @@
+{
+  "name": "livekit-application-server",
+  "version": "1.0.0",
+  "description": "Application server for LiveKit tutorial",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "streaming": "node streaming-text-server.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [
+    "livekit",
+    "webrtc"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "livekit-server-sdk": "^2.1.0",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

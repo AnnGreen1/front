@@ -1,0 +1,3 @@
+<!--pages/app/keep-state/index.wxml-->
+<t-navbar left-arrow title="keep state" />
+<t-input label="请输入" type="password" value="{{text}}" />

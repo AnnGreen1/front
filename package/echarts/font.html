@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>ECharts with Google Font</title>
+    <!-- 1. 从 Google Fonts 引入 "Roboto" 字体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="main" style="width: 600px; height: 400px"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/6.0.0/echarts.min.js" integrity="sha512-4/g9GAdOdTpUP2mKClpKsEzaK7FQNgMjq+No0rX8XZlfrCGtbi4r+T/p5fnacsEC3zIAmHKLJUL7sh3/yVA4OQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script type="text/javascript">
+      var chartDom = document.getElementById("main");
+      var myChart = echarts.init(chartDom);
+      var option;
+
+      option = {
+        textStyle: {
+          fontFamily: "Roboto, sans-serif", // 2. 直接使用字体名
+        },
+        title: {
+          text: "使用 Roboto 字体",
+        },
+        xAxis: {
+          type: "category",
+          data: ["A", "B", "C"],
+        },
+        yAxis: {
+          type: "value",
+        },
+        series: [
+          {
+            data: [1, 2, 3],
+            type: "bar",
+          },
+        ],
+      };
+
+      myChart.setOption(option);
+    </script>
+  </body>
+</html>

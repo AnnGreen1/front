@@ -1,0 +1,5 @@
+<!--pages/app/choose-media/index.wxml-->
+<t-navbar left-arrow title="choose-media" />
+<button bindtap="chooseMedia">chooseMedia</button>
+<image src="{{imgSrc}}" mode="" style="width:100%"></image>
+<video src="{{videoSrc}}" mode="" style="width:100%"></video>

@@ -1,0 +1,60 @@
+<!--pages/wxml/index.wxml-->
+<scroll-view class="wxml" scroll-y>
+  <span>pages/wxml/index.wxml</span>
+  <text>hello world</text>
+  <!-- <image src="../../assets/images/test.jpeg" alt="" style="height: 10vh;width: 20px;"></image> -->
+  <br />
+  <text>当前时间：{{ time }}</text>
+  <br />
+  <text>hello,{{ name }}</text>
+  <br />
+  <text>{{ 'hello' + name}}</text>
+
+  <text wx:if="{{ok}}">ok</text>
+
+  <view wx:for="{{todo}}" wx:for-index="idx" wx:for-item="item">
+    {{ idx }}:{{ item.label }}:{{ item.status }}
+  </view>
+
+  <checkbox wx:for="{{todo}}" wx:for-index="idx" wx:for-item="item" value="{{item.label}}" checked="{{item.status}}">苹果</checkbox>
+
+  <template is="msgItem" data="{{...item}}" />
+
+
+  <template name="msgItem">
+    <view>
+      <text>{{ index}} {{msg}} {{time}}</text>
+    </view>
+  </template>
+
+  <!-- 750rpx 永远等于屏幕宽度，1rpx永远是屏幕宽度的1/750-->
+  <view style="width: 750rpx;height: 20rpx;background-color: pink;">rpx</view>
+
+  <!--wxml-->
+  <wxs module="m1">
+    var msg = "hello world";
+    var lang = 'wxs'
+
+    module.exports.message = msg;
+    module.exports.lang = lang
+  </wxs>
+
+  <view> {{m1.message}} {{m1.lang}} </view>
+
+  <wxs module="wxs" src="./test.wxs"></wxs>
+  <view id="tapTest" data-hi="Weixin" bindtap="{{wxs.tapName}}">wxs event</view>
+
+  <input model:value="{{value}}" style="width: 200rpx;border: 1rpx solid hotpink;" />
+
+  <image src="/assets/images/test.jpeg" style="height: 500rpx;margin-bottom: 10rpx;"></image>
+
+  <image src="/assets/images/test.jpeg" style="height: 500rpx;margin-bottom: 10rpx;"></image>
+
+
+  <image src="/assets/images/test.jpeg" style="height: 500rpx;margin-bottom: 10rpx;"></image>
+
+
+  <image src="/assets/images/test.jpeg" style="height: 500rpx;margin-bottom: 10rpx;"></image>
+
+  <view class="bg"></view>
+</scroll-view>

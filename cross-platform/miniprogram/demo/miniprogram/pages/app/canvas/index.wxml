@@ -1,0 +1,3 @@
+<!--pages/app/canvas/index.wxml-->
+<t-navbar left-arrow title="canvas" />
+<canvas type="2d" id="progressCanvas" style="width: 100%; height: 150px;"></canvas>

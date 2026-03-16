@@ -1,0 +1,3 @@
+<!--pages/app/request/index.wxml-->
+<t-navbar left-arrow title="wx.request" />
+{{ res }}

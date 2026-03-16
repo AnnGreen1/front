@@ -1,0 +1,15 @@
+<!--pages/app/safe-area/index.wxml-->
+<view class="safe-area">
+  <view>safe-area 变量是 CSS 内容，非微信独创，参考：</view>
+  <a href="https://developer.mozilla.org/zh-CN/docs/Web/CSS/Reference/Values/env">
+    https://developer.mozilla.org/zh-CN/docs/Web/CSS/Reference/Values/env</a>
+</view>
+
+<!-- 添加调试信息 -->
+<view class="test-safe-area">
+  <text>测试安全区域效果的元素</text>
+</view>
+
+<view style="margin-top: 20px; background-color: lightblue; padding: 10px;">
+  <text>如果安全区域生效，上面的红色区域应该有顶部间距</text>
+</view>

@@ -1,0 +1,8 @@
+$color: #111;
+.content {
+  $color: #222;
+  background-color: $color;
+}
+.footer {
+  $color: #333 !global;
+}

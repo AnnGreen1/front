@@ -1,0 +1,46 @@
+<!--pages/app/bluetooth/index.wxml-->
+<view class="container">
+  <view class="title">连接 Xiaozhi 蓝牙设备</view>
+  <view class="tip">请确保设备已启动并在广播</view>
+
+  <!-- 操作按钮区域 -->
+  <view class="btn-group">
+    <button type="primary" bindtap="initBluetooth" disabled="{{isOperating || bluetoothEnabled}}">
+      {{bluetoothEnabled ? '蓝牙已就绪' : '初始化蓝牙'}}
+    </button>
+    <button type="primary" bindtap="startScan" disabled="{{!bluetoothEnabled || isScanning}}">
+      {{isScanning ? '扫描中...' : '开始扫描'}}
+    </button>
+    <button type="warn" bindtap="stopScan" disabled="{{!isScanning}}">停止扫描</button>
+  </view>
+
+  <!-- 设备列表 -->
+  <view class="device-list">
+    <view class="section-title">发现设备 (点击连接)</view>
+    <block wx:for="{{devices}}" wx:key="deviceId">
+      <view class="device-item" bindtap="connectDevice" data-id="{{item.deviceId}}">
+        <text class="device-name">{{item.name || '未知设备'}}</text>
+        <text class="device-id">{{item.deviceId}}</text>
+      </view>
+    </block>
+  </view>
+
+  <!-- 连接后的控制区域 -->
+  <view class="control-panel" wx:if="{{connectedDeviceId}}">
+    <view class="section-title">设备控制</view>
+    <button type="primary" bindtap="readData" disabled="{{!canRead}}">读取数据</button>
+    <button type="primary" bindtap="writeData" disabled="{{!canWrite}}">写入指令</button>
+    <button type="warn" bindtap="disconnect">断开连接</button>
+    <view class="status">状态: {{statusText || '已连接'}}</view>
+  </view>
+
+  <!-- 日志区域 -->
+  <view class="log">
+    <view class="section-title">操作日志</view>
+    <scroll-view scroll-y style="height: 200px;">
+      <block wx:for="{{logs}}" wx:key="index">
+        <view class="log-item">{{item}}</view>
+      </block>
+    </scroll-view>
+  </view>
+</view>

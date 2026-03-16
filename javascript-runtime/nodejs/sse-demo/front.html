@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SSE演示</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        #output { 
+            border: 1px solid #ddd; 
+            padding: 15px; 
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .msg { margin: 5px 0; padding: 8px; background: #f5f5f5; }
+        .alert { background: #fff3cd; border-left: 4px solid #ffc107; }
+    </style>
+</head>
+<body>
+    <h1>SSE数据流演示</h1>
+    <button onclick="connectSSE()">连接SSE</button>
+    <button onclick="disconnectSSE()" disabled id="stopBtn">断开连接</button>
+    
+    <div id="output">等待连接...</div>
+    <script>
+        let eventSource = null;
+        
+        function connectSSE() {
+            // 1. 创建EventSource对象，连接到/events端点
+            eventSource = new EventSource('http://localhost:3000/events');
+            
+            document.querySelector('#stopBtn').disabled = false;
+            addMessage('🔗 正在连接SSE...', 'system');
+            
+            // 2. 监听默认的message事件（无event字段的消息）
+            eventSource.onmessage = (event) => {
+                console.log('收到消息:', event.data);
+                addMessage(event.data, 'data');
+            };
+            
+            // 3. 监听自定义事件（event: alert）
+            eventSource.addEventListener('alert', (event) => {
+                addMessage(`🚨 ${event.data} (ID: ${event.lastEventId})`, 'alert');
+            });
+            
+            // 4. 连接打开
+            eventSource.onopen = () => {
+                addMessage('✅ SSE连接已建立', 'system');
+            };
+            
+            // 5. 连接错误
+            eventSource.onerror = (err) => {
+                addMessage('❌ 连接错误，可能已断开', 'system');
+                console.error('SSE错误:', err);
+            };
+        }
+        
+        function disconnectSSE() {
+            if (eventSource) {
+                eventSource.close(); // 关闭SSE连接
+                eventSource = null;
+                addMessage('⏹️ 连接已关闭', 'system');
+                document.querySelector('#stopBtn').disabled = true;
+            }
+        }
+        
+        // 辅助函数：在页面显示消息
+        function addMessage(text, type) {
+            const div = document.createElement('div');
+            div.className = `msg ${type}`;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${text}`;
+            document.getElementById('output').prepend(div);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!--pages/app/index.wxml-->
+<view class="app">
+  <t-navbar t-class-placeholder="t-navbar-placeholder" t-class-content="t-navbar-content" title="app"
+    t-class-title="nav-title" />
+  <scroll-view scroll-y class="app">
+    <t-cell title="事件传参" url="/pages/app/event/index" hover arrow />
+    <t-cell title="safe area" url="/pages/app/safe-area/index" hover arrow />
+    <t-cell title="webview" url="/pages/app/webview/index" description="承载网页的容器。会自动铺满整个小程序页面，个人类型的小程序暂不支持使用。" hover
+      arrow />
+    <t-cell title="wx.chooseMedia" url="/pages/app/choose-media/index" hover arrow />
+    <t-cell title="canvas" url="/pages/app/canvas/index" hover arrow />
+    <t-cell title="wx.downloadFile wx.openDocument" url="/pages/app/download-file-open-document/index" hover arrow />
+    <t-cell title="wx.previewImage" url="/pages/app/preview-image/index" hover arrow />
+    <t-cell title="wx.request" url="/pages/app/request/index" hover arrow />
+    <t-cell title="sass" url="/pages/app/sass/index" hover arrow />
+    <t-cell title="component" url="/pages/app/component/index" hover arrow />
+    <t-cell title="this.selectComponent" url="/pages/app/select-component/index" hover arrow />
+    <t-cell title="wx.login" url="/pages/app/login/index" hover arrow />
+    <t-cell title="wx.getDeviceInfo" url="/pages/app/get-device-info/index" hover arrow />
+    <t-cell title="page style" url="/pages/app/page-style/index" hover arrow />
+    <t-cell title="组件跳转组件返回" url="/pages/app/keep-state/index" hover arrow></t-cell>
+    <t-cell title="状态" hover arrow>
+      <t-switch defaultValue="{{value}}" slot="note" />
+    </t-cell>
+    <t-cell title="原生input" url="/pages/app/input/index" hover arrow />
+    <t-cell title="bluetooth" url="/pages/app/bluetooth/index" hover arrow />
+  </scroll-view>
+</view>
