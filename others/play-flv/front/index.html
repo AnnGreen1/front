@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FLV 直播播放器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 0.9em;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%; /* 16:9 比例 */
+      background: #000;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .video-wrapper video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+      color: white;
+    }
+
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(86, 171, 47, 0.4);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(235, 51, 73, 0.4);
+    }
+
+    .btn-info {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+
+    .btn-info:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+    }
+
+    .btn-warning {
+      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+      color: white;
+    }
+
+    .btn-warning:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 154, 158, 0.4);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .status-bar {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .status-item:last-child {
+      border-bottom: none;
+    }
+
+    .status-label {
+      font-weight: 600;
+      color: #495057;
+    }
+
+    .status-value {
+      color: #6c757d;
+    }
+
+    .status-value.success {
+      color: #28a745;
+    }
+
+    .status-value.error {
+      color: #dc3545;
+    }
+
+    .status-value.warning {
+      color: #ffc107;
+    }
+
+    .log-container {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 20px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+
+    .log-entry {
+      margin-bottom: 5px;
+      word-break: break-all;
+    }
+
+    .log-info {
+      color: #4ec9b0;
+    }
+
+    .log-success {
+      color: #6a9955;
+    }
+
+    .log-error {
+      color: #f44747;
+    }
+
+    .log-warning {
+      color: #cca700;
+    }
+
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: white;
+    }
+
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top: 4px solid white;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .stat-card {
+      background: white;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.8em;
+      font-weight: bold;
+      color: #667eea;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 0.85em;
+      color: #6c757d;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="container">
+      <div class="header">
+        <h1>🎬 FLV 直播播放器</h1>
+        <p>基于 flvjs 的实时流媒体播放</p>
+      </div>
+
+      <div class="content">
+        <div class="video-wrapper">
+          <video ref="videoElement"></video>
+          <div class="loading" v-if="loading">
+            <div class="spinner"></div>
+            <div>加载中...</div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button 
+            class="btn btn-primary" 
+            @click="startPlay"
+            :disabled="isPlaying || loading"
+          >
+            ▶️ 开始播放
+          </button>
+          
+          <button 
+            class="btn btn-danger" 
+            @click="stopPlay"
+            :disabled="!isPlaying"
+          >
+            ⏹️ 停止播放
+          </button>
+          
+          <button 
+            class="btn btn-success" 
+            @click="refreshStats"
+            :disabled="!isPlaying"
+          >
+            📊 刷新统计
+          </button>
+          
+          <button 
+            class="btn btn-info" 
+            @click="takeScreenshot"
+            :disabled="!isPlaying || screenshotLoading"
+          >
+            {{ screenshotLoading ? '📸 截图中...' : '📸 截取画面' }}
+          </button>
+          
+          <button 
+            class="btn btn-warning" 
+            @click="showGallery"
+          >
+            🖼️ 查看截图
+          </button>
+        </div>
+
+        <div class="status-bar">
+          <div class="status-item">
+            <span class="status-label">播放状态:</span>
+            <span class="status-value" :class="statusClass">{{ statusText }}</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">流地址:</span>
+            <span class="status-value">{{ streamUrl }}</span>
+          </div>
+        </div>
+
+        <div class="stats-grid" v-if="isPlaying">
+          <div class="stat-card">
+            <div class="stat-value">{{ stats.bufferSize }} KB</div>
+            <div class="stat-label">缓冲区大小</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">{{ stats.downloaded }} KB</div>
+            <div class="stat-label">已下载</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">{{ stats.speed }} KB/s</div>
+            <div class="stat-label">下载速度</div>
+          </div>
+        </div>
+
+        <div class="log-container">
+          <div v-for="(log, index) in logs" :key="index" 
+               class="log-entry" 
+               :class="'log-' + log.level">
+            [{{ log.time }}] {{ log.message }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- Vue2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <!-- flv.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/flv.js@1.5.0/dist/flv.min.js"></script>
+    
+
+  <script>
+    new Vue({
+      el: '#app',
+      
+      data() {
+        return {
+          player: null,
+          isPlaying: false,
+          loading: false,
+          streamUrl: 'http://localhost:8000/live/stream.flv',
+          stats: {
+            bufferSize: 0,
+            downloaded: 0,
+            speed: 0
+          },
+          logs: [],
+          statsInterval: null,
+          screenshotLoading: false
+        };
+      },
+
+      computed: {
+        statusText() {
+          if (this.loading) return '加载中...';
+          if (this.isPlaying) return '正在播放';
+          return '未播放';
+        },
+        
+        statusClass() {
+          if (this.loading) return 'warning';
+          if (this.isPlaying) return 'success';
+          return '';
+        }
+      },
+
+      methods: {
+        log(message, level = 'info') {
+          const time = new Date().toLocaleTimeString();
+          this.logs.unshift({
+            time,
+            message,
+            level
+          });
+          // 保留最近 50 条日志
+          if (this.logs.length > 50) {
+            this.logs.pop();
+          }
+          console.log(`[${level.toUpperCase()}] ${message}`);
+        },
+
+        startPlay() {
+          if (!flvjs.isSupported()) {
+            this.log('浏览器不支持 flvjs', 'error');
+            alert('您的浏览器不支持 FLV 播放');
+            return;
+          }
+
+          this.loading = true;
+          this.log('开始连接流媒体...', 'info');
+
+          try {
+            const videoElement = this.$refs.videoElement;
+            
+            this.player = flvjs.createPlayer({
+              type: 'flv',
+              url: this.streamUrl,
+              isLive: true,        // 启用直播模式
+              autoplay: true,      // 自动播放
+              enableStableBuffer: true,  // 启用稳定缓冲区
+              lazyLoadMaxDuration: 3 * 60, // 最大缓冲时长
+              lazyLoadTimeout: 10000      // 懒加载超时
+            });
+
+            this.player.attachMediaElement(videoElement);
+
+            this.player.on(flvjs.Events.ERROR, (error) => {
+              this.log(`播放错误：${JSON.stringify(error)}`, 'error');
+              this.loading = false;
+              this.isPlaying = false;
+            });
+
+            this.player.on(flvjs.Events.LOADED_METADATA, () => {
+              this.log('流媒体元数据加载成功', 'success');
+            });
+
+            this.player.load();
+            
+            this.player.play().then(() => {
+              this.log('开始播放成功', 'success');
+              this.isPlaying = true;
+              this.loading = false;
+              this.startStatsUpdate();
+            }).catch((err) => {
+              this.log(`播放失败：${err.message}`, 'error');
+              this.loading = false;
+            });
+
+          } catch (error) {
+            this.log(`创建播放器失败：${error.message}`, 'error');
+            this.loading = false;
+          }
+        },
+
+        stopPlay() {
+          if (this.player) {
+            this.player.pause();
+            this.player.unload();
+            this.player.detachMediaElement();
+            this.player.destroy();
+            this.player = null;
+            
+            if (this.statsInterval) {
+              clearInterval(this.statsInterval);
+              this.statsInterval = null;
+            }
+            
+            this.log('已停止播放', 'info');
+            this.isPlaying = false;
+            this.stats = { bufferSize: 0, downloaded: 0, speed: 0 };
+          }
+        },
+
+        startStatsUpdate() {
+          this.statsInterval = setInterval(() => {
+            if (this.player && this.player.statisticsInfo) {
+              const info = this.player.statisticsInfo;
+              this.stats.bufferSize = Math.round(info.bufferSize / 1024);
+              this.stats.downloaded = Math.round(info.totalBytesDownloaded / 1024);
+              this.stats.speed = Math.round(info.speed / 1024);
+            }
+          }, 1000);
+        },
+
+        refreshStats() {
+          if (this.player && this.player.statisticsInfo) {
+            const info = this.player.statisticsInfo;
+            this.log(`统计信息 - 缓冲区：${Math.round(info.bufferSize / 1024)}KB, ` +
+                    `已下载：${Math.round(info.totalBytesDownloaded / 1024)}KB, ` +
+                    `速度：${Math.round(info.speed / 1024)}KB/s`, 'info');
+          } else {
+            this.log('无法获取统计信息', 'warning');
+          }
+        },
+
+        takeScreenshot() {
+          if (!this.isPlaying) {
+            this.log('请先开始播放', 'warning');
+            return;
+          }
+
+          this.screenshotLoading = true;
+          this.log('正在请求后端截图...', 'info');
+
+          fetch('http://localhost:8001/api/screenshot', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            this.screenshotLoading = false;
+            
+            if (data.success) {
+              this.log(`✅ 截图成功：${data.filename}`, 'success');
+              
+              // 自动下载截图
+              const link = document.createElement('a');
+              link.href = `http://localhost:8001/screenshots/${data.filename}`;
+              link.download = data.filename;
+              link.target = '_blank';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              
+              this.log('截图已开始下载', 'success');
+            } else {
+              this.log(`❌ 截图失败：${data.message}`, 'error');
+              alert('截图失败：' + data.message);
+            }
+          })
+          .catch(error => {
+            this.screenshotLoading = false;
+            this.log(`❌ 截图请求失败：${error.message}`, 'error');
+            alert('截图失败，请检查后端服务是否运行');
+            console.error('Screenshot error:', error);
+          });
+        },
+
+        showGallery() {
+          window.open('http://localhost:8001/gallery', '_blank');
+        }
+      },
+
+      beforeDestroy() {
+        this.stopPlay();
+      }
+    });
+  </script>
+</body>
+</html>

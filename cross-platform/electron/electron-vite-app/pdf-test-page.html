@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF 打印测试页面</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      color: #2c3e50;
+      border-bottom: 3px solid #3498db;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+
+    .section {
+      margin: 25px 0;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .section h2 {
+      color: #34495e;
+      margin-bottom: 15px;
+    }
+
+    .color-box {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 15px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+      background: white;
+    }
+
+    th, td {
+      border: 2px solid #3498db;
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background: #3498db;
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background: #ecf0f1;
+    }
+
+    .info-card {
+      background: #ff6b6b;
+      color: white;
+      padding: 15px;
+      border-radius: 6px;
+      margin: 15px 0;
+    }
+
+    ul {
+      padding-left: 30px;
+    }
+
+    li {
+      margin: 10px 0;
+      line-height: 1.6;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #45a049;
+    }
+
+    .btn-secondary {
+      background: #2196F3;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #0b7dda;
+    }
+
+    .status {
+      margin-top: 20px;
+      padding: 15px;
+      background: #e7f3ff;
+      border-left: 4px solid #2196F3;
+      border-radius: 4px;
+    }
+
+    @media print {
+      .no-print {
+        display: none;
+      }
+      
+      body {
+        background: white;
+      }
+      
+      .container {
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📄 PDF 打印测试页面</h1>
+    
+    <div class="section">
+      <h2>1. 文本内容</h2>
+      <p>这是一个用于测试 Electron printToPDF 功能的示例页面。页面包含了各种常见的 HTML 元素，包括文本、表格、列表和带有样式的卡片。</p>
+      <p style="margin-top: 10px;">
+        <strong>注意：</strong>此页面专门设计了背景色和渐变效果，用于测试 printBackground 选项的效果。
+      </p>
+    </div>
+
+    <div class="color-box">
+      <h3>彩色背景区域</h3>
+      <p>这个区域使用了 CSS 渐变色背景。如果勾选"打印背景"选项，这个渐变色将会出现在 PDF 中。</p>
+    </div>
+
+    <div class="section">
+      <h2>2. 数据表格</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>姓名</th>
+            <th>年龄</th>
+            <th>职业</th>
+            <th>城市</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>张三</td>
+            <td>28</td>
+            <td>软件工程师</td>
+            <td>北京</td>
+          </tr>
+          <tr>
+            <td>李四</td>
+            <td>32</td>
+            <td>UI 设计师</td>
+            <td>上海</td>
+          </tr>
+          <tr>
+            <td>王五</td>
+            <td>25</td>
+            <td>产品经理</td>
+            <td>深圳</td>
+          </tr>
+          <tr>
+            <td>赵六</td>
+            <td>30</td>
+            <td>数据分析师</td>
+            <td>广州</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info-card">
+      <h3>💡 提示信息</h3>
+      <p>这是一个红色背景的提示卡片，用于测试不同颜色背景的打印效果。</p>
+    </div>
+
+    <div class="section">
+      <h2>3. 功能列表</h2>
+      <ul>
+        <li>✅ 支持 A4、Letter、Legal 等多种纸张大小</li>
+        <li>✅ 支持横向和纵向打印模式</li>
+        <li>✅ 支持自定义缩放比例（10%-200%）</li>
+        <li>✅ 支持打印背景色和背景图片</li>
+        <li>✅ 支持三种边距模式（默认、无、最小）</li>
+        <li>✅ 实时预览生成的 PDF</li>
+        <li>✅ 保存到本地文件系统</li>
+      </ul>
+    </div>
+
+    <div class="section no-print">
+      <h2>🖨️ 打印控制</h2>
+      <p>使用以下按钮测试不同的打印配置：</p>
+      
+      <div class="button-group">
+        <button class="btn-primary" onclick="quickPrint()">快速打印 (A4)</button>
+        <button class="btn-secondary" onclick="landscapePrint()">横向打印</button>
+        <button class="btn-secondary" onclick="printWithBackground()">打印背景</button>
+        <button class="btn-secondary" onclick="customScale()">缩放打印 (150%)</button>
+      </div>
+
+      <div id="status" class="status" style="display: none;">
+        <strong>状态:</strong> <span id="statusText"></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showStatus(message) {
+      const statusEl = document.getElementById('status')
+      const statusText = document.getElementById('statusText')
+      statusEl.style.display = 'block'
+      statusText.textContent = message
+      
+      setTimeout(() => {
+        statusEl.style.display = 'none'
+      }, 5000)
+    }
+
+    async function quickPrint() {
+      try {
+        showStatus('正在生成 PDF...')
+        const result = await window.api.printToPDF({
+          pageSize: 'A4',
+          landscape: false,
+          printBackground: true,
+          marginsType: 0,
+          scaleFactor: 100
+        })
+
+        if (result.success) {
+          showStatus('PDF 生成成功！正在保存...')
+          const saveResult = await window.api.savePDF(result.data)
+          
+          if (saveResult.success) {
+            showStatus(`✅ PDF 已保存到：${saveResult.filePath}`)
+          } else if (saveResult.cancelled) {
+            showStatus('⚠️ 用户取消了保存操作')
+          }
+        } else {
+          showStatus(`❌ 打印失败：${result.message}`)
+        }
+      } catch (error) {
+        showStatus(`❌ 错误：${error.message}`)
+      }
+    }
+
+    async function landscapePrint() {
+      try {
+        showStatus('正在横向打印...')
+        const result = await window.api.printToPDF({
+          pageSize: 'A4',
+          landscape: true,
+          printBackground: true
+        })
+
+        if (result.success) {
+          const saveResult = await window.api.savePDF(result.data)
+          if (saveResult.success) {
+            showStatus(`✅ 横向 PDF 已保存：${saveResult.filePath}`)
+          }
+        }
+      } catch (error) {
+        showStatus(`❌ 错误：${error.message}`)
+      }
+    }
+
+    async function printWithBackground() {
+      try {
+        showStatus('正在打印（带背景）...')
+        const result = await window.api.printToPDF({
+          pageSize: 'Letter',
+          printBackground: true,
+          marginsType: 1 // 无边距
+        })
+
+        if (result.success) {
+          const saveResult = await window.api.savePDF(result.data)
+          if (saveResult.success) {
+            showStatus(`✅ Letter 尺寸 PDF 已保存：${saveResult.filePath}`)
+          }
+        }
+      } catch (error) {
+        showStatus(`❌ 错误：${error.message}`)
+      }
+    }
+
+    async function customScale() {
+      try {
+        showStatus('正在缩放打印 (150%)...')
+        const result = await window.api.printToPDF({
+          pageSize: 'A4',
+          scaleFactor: 150
+        })
+
+        if (result.success) {
+          const saveResult = await window.api.savePDF(result.data)
+          if (saveResult.success) {
+            showStatus(`✅ 放大版 PDF 已保存：${saveResult.filePath}`)
+          }
+        }
+      } catch (error) {
+        showStatus(`❌ 错误：${error.message}`)
+      }
+    }
+
+    // 页面加载完成后的欢迎消息
+    console.log('📄 PDF 打印测试页面已加载')
+    console.log('可以使用控制台调用上述函数进行测试')
+  </script>
+</body>
+</html>
