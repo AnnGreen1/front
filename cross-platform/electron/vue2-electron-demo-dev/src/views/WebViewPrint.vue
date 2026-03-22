@@ -1,7 +1,7 @@
 <template>
     <div>
-        <h1> webview print test</h1>
-        <webview :src="printUrl" ref="printWebview" webpreferences="contextIsolation=no" style="height: 1px"
+        <!-- <h1> webview print test</h1> -->
+        <webview :src="printUrl" ref="printWebview" webpreferences="contextIsolation=no" style="height: 900px"
             nodeintegrationinsubframes></webview>
         <button @click="print">打印测试</button>
     </div>
@@ -11,7 +11,9 @@
 export default {
     data() {
         return {
-            printUrl: "./print.html"
+            // printUrl: "./print.html"
+            // printUrl: "https://www.electronjs.org/zh/"
+            printfUrl:"http://localhost:8080/about"
         }
     },
     methods: {
