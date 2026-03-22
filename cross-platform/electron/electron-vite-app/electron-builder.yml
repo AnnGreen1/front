@@ -36,7 +36,10 @@ linux:
   category: Utility
 appImage:
   artifactName: ${name}-${version}.${ext}
-npmRebuild: false
+npmRebuild: true
 publish:
   provider: generic
   url: https://example.com/auto-updates
+electronDownload:
+  mirror: https://npmmirror.com/mirrors/electron/
+npmArgs: "--legacy-peer-deps"

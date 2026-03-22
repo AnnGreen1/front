@@ -1,0 +1,25 @@
+{
+  "name": "flv-streaming-backend",
+  "version": "1.0.0",
+  "description": "Node.js FLV streaming server with webcam capture",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "flv",
+    "streaming",
+    "webcam",
+    "node-media-server"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "node-media-server": "^2.5.0",
+    "fluent-ffmpeg": "^2.1.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
