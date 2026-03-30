@@ -1,6 +1,6 @@
 <template>
     <div>
-        JavascriptAxios.vue
+        JavascriptAxios.vue,{{ msg }}
     </div>
 </template>
 
@@ -9,19 +9,20 @@ import { randqinghua } from '@/api/api'
 export default {
     data() {
         return {
-
+            msg: "Hello, JavascriptAxios!"
         }
     },
     methods: {
 
     },
+    beforeCreate() {
+        console.log("beforeCreate")
+        // console.log(this.msg)
+        // this.msg = "beforeCreate"
+        // console.log(this.msg)
+    },
     created() {
-        let randqinghua_data = { 'format': 'json' }
-        randqinghua(randqinghua_data).then((res) => {
-            console.log(res)
-        }).catch((error) => {
-            console.log(error);
-        })
+        console.log(this.msg)
     }
 }
 </script>

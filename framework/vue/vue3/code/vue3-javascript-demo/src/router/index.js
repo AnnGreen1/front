@@ -38,4 +38,11 @@ const router = createRouter({
   ]
 })
 
+router.addRoute({
+  path: '/article/:id',          // ✅ 这里定义了动态参数 :id
+  name: 'ArticleDetail',         // 建议加上 name，方便后续引用
+  component: () => import('@/views/AboutView.vue'),
+  meta: { requiresAuth: true }
+})
+
 export default router
