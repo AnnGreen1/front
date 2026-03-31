@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Script defer 和 async 示例</title>
+    <script>
+        // 记录页面加载过程中的时间点
+        const logs = [];
+        function log(message) {
+            const time = new Date().toLocaleTimeString();
+            logs.push(`[${time}] ${message}`);
+            console.log(`[${time}] ${message}`);
+        }
+        log("HTML 解析开始");
+    </script>
+</head>
+<body>
+    <h1>Script defer 和 async 示例</h1>
+    <p>请查看浏览器控制台输出，观察脚本执行顺序。</p>
+
+    <!-- 普通脚本：会阻塞 HTML 解析 -->
+    <script>
+        log("普通脚本：立即执行（阻塞解析）");
+    </script>
+
+    <!-- async 脚本：异步加载，加载完立即执行，顺序不确定 -->
+    <script async src="data:text/javascript,log('async 脚本：异步加载并立即执行');"></script>
+
+    <!-- defer 脚本：异步加载，HTML 解析完成后按顺序执行 -->
+    <script defer src="data:text/javascript,log('defer 脚本：异步加载，解析完成后执行');"></script>
+
+    <script>
+        log("HTML 解析结束");
+        // 等待所有脚本执行完毕后输出完整日志
+        setTimeout(() => {
+            log("=== 执行顺序总结 ===");
+            logs.forEach(msg => console.log(msg));
+        }, 100);
+    </script>
+</body>
+</html>
