@@ -12,9 +12,7 @@ protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
 ])
 
-/**
- * @description: 隐藏菜单栏
- */
+// 隐藏菜单栏
 Menu.setApplicationMenu(false)
 
 
@@ -35,9 +33,9 @@ async function createWindow() {
   })
 
   // 可通过快捷键打开devTools
-  globalShortcut.register('CommandOrControl+Shift+i', () => {
-    win.webContents.isDevToolsOpened() ? win.webContents.closeDevTools() : win.webContents.openDevTools()
-  })
+  // globalShortcut.register('CommandOrControl+Shift+i', () => {
+  //   win.webContents.isDevToolsOpened() ? win.webContents.closeDevTools() : win.webContents.openDevTools()
+  // })
 
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
