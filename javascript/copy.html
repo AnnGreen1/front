@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        let mike = {
+            name: "Mike",
+            age: 30,
+            city: "New York",
+            hobbies: ["reading", "traveling", "cooking"]
+        };
+
+        let copyMike = mike; // 直接赋值，copyMike 和 mike 指向同一个对象
+        copyMike.age = 31; // 修改 copyMike 的 age 属性
+        console.log(mike.age); // 输出 31，因为 mike 和 copyMike 指向同一个对象
+        // 浅拷贝
+        let shallowCopyMike = Object.assign({}, mike);
+        shallowCopyMike.city = "Los Angeles"; // 修改 shallowCopyMike 的 city 属性
+        console.log(mike.city); // 输出 "New York"，因为 shallowCopyMike 是 mike 的浅拷贝，city 是一个基本类型，不受影响
+    </script>
+</body>
+</html>

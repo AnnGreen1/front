@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>防抖与节流实战</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .section { margin-bottom: 30px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        input { padding: 8px; width: 200px; margin-right: 10px; }
+        button { padding: 8px 16px; cursor: pointer; }
+        #scroll-box { height: 150px; overflow-y: scroll; border: 1px solid #ccc; background: #f9f9f9; padding: 10px; }
+        .log { color: #666; font-size: 14px; margin-top: 5px; }
+        .highlight { color: #d9534f; font-weight: bold; }
+    </style>
+</head>
+
+<body>
+
+    <!-- 场景 1：防抖 - 搜索输入 -->
+    <div class="section">
+        <h3>1. 防抖 (Debounce) - 搜索联想</h3>
+        <p>输入时不会立即请求，停止输入 500ms 后才执行。</p>
+        <input type="text" id="debounce-input" placeholder="请输入关键词...">
+        <div id="debounce-log" class="log">等待输入...</div>
+    </div>
+
+    <!-- 场景 2：节流 - 滚动加载 -->
+    <div class="section">
+        <h3>2. 节流 (Throttle) - 滚动监听</h3>
+        <p>快速滚动时，每 1000ms 最多执行一次。</p>
+        <div id="scroll-box">
+            <p>向下滚动...</p>
+            <p style="height: 800px;">占位内容，请滚动...</p>
+        </div>
+        <div id="throttle-log" class="log">滚动次数: 0</div>
+    </div>
+
+    <!-- 场景 3：防抖 vs 节流 - 按钮点击 -->
+    <div class="section">
+        <h3>3. 按钮点击对比</h3>
+        <button id="btn-debounce">防抖提交 (停手后执行)</button>
+        <button id="btn-throttle">节流提交 (固定频率执行)</button>
+        <div id="click-log" class="log">点击日志...</div>
+    </div>
+
+    <script>
+        // ================= 工具函数实现 =================
+
+        /**
+         * 防抖函数
+         * @param {Function} func 要执行的函数
+         * @param {number} delay 延迟时间 (ms)
+         */
+        function debounce(func, delay) {
+            let timer = null;
+            return function (...args) {
+                // 每次触发都清除之前的定时器
+                if (timer) clearTimeout(timer);
+                
+                // 重新设置定时器
+                timer = setTimeout(() => {
+                    func.apply(this, args);
+                }, delay);
+            };
+        }
+
+        /**
+         * 节流函数 (使用时间戳实现，立即执行版)
+         * @param {Function} func 要执行的函数
+         * @param {number} interval 间隔时间 (ms)
+         */
+        function throttle(func, interval) {
+            let lastTime = 0;
+            return function (...args) {
+                const now = Date.now();
+                // 如果当前时间 - 上次执行时间 >= 间隔时间，则执行
+                if (now - lastTime >= interval) {
+                    lastTime = now;
+                    func.apply(this, args);
+                }
+            };
+        }
+
+        // ================= 场景应用 =================
+
+        // 1. 搜索输入防抖
+        const inputEl = document.getElementById('debounce-input');
+        const debounceLog = document.getElementById('debounce-log');
+
+        const handleSearch = (e) => {
+            console.log(`发送请求: ${e.target.value}`);
+            debounceLog.innerHTML = `<span class="highlight">API 请求发送: ${e.target.value}</span>`;
+        };
+
+        // 使用防抖包装，延迟 500ms
+        inputEl.addEventListener('input', debounce(handleSearch, 500));
+
+
+        // 2. 滚动监听节流
+        const scrollBox = document.getElementById('scroll-box');
+        const throttleLog = document.getElementById('throttle-log');
+        let scrollCount = 0;
+
+        const handleScroll = () => {
+            scrollCount++;
+            throttleLog.innerText = `滚动触发了函数执行: ${scrollCount} 次 (当前 scrollTop: ${Math.round(scrollBox.scrollTop)})`;
+            console.log('Scroll event fired');
+        };
+
+        // 使用节流包装，每 1000ms 最多执行一次
+        scrollBox.addEventListener('scroll', throttle(handleScroll, 1000));
+
+
+        // 3. 按钮点击对比
+        const btnDebounce = document.getElementById('btn-debounce');
+        const btnThrottle = document.getElementById('btn-throttle');
+        const clickLog = document.getElementById('click-log');
+
+        const submitAction = (type) => {
+            const time = new Date().toLocaleTimeString();
+            const p = document.createElement('div');
+            p.textContent = `[${time}] ${type} 执行了提交操作`;
+            clickLog.prepend(p);
+            console.log(`${type} submitted`);
+        };
+
+        // 防抖按钮：疯狂点击没反应，停下来 1 秒后才提交
+        btnDebounce.addEventListener('click', debounce(() => submitAction('防抖'), 1000));
+
+        // 节流按钮：每隔 1 秒只能点成功一次
+        btnThrottle.addEventListener('click', throttle(() => submitAction('节流'), 1000));
+
+    </script>
+</body>
+</html>

@@ -1,15 +1,29 @@
 <template>
-  <Comp @increaseBy="plus"></Comp>
+  <div class="jixiaokang">
+    <button @click="pushNum">push</button>
+    <button @click="popNum">pop</button>
+    <button @click="update">update</button>
+    <div>{{ nums }}</div>
+  </div>
 </template>
 
-<script setup>
-import { ref } from "vue";
-import Comp from "./comp.vue";
-const theme = {
-  color: "pink",
-};
-const size = ref(10);
-const plus = () => {
-  console.log(size.value);
-};
+<script>
+export default {
+  data() {
+    return {
+      nums: []
+    }
+  },
+  methods: {
+    pushNum() {
+      this.nums.push(Math.floor(Math.random() * 100))
+    },
+    popNum() {
+      this.nums.pop()
+    },
+    update() {
+      this.nums[0] = Math.floor(Math.random() * 100)
+    }
+  }
+}
 </script>
