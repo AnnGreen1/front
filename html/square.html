@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Square Example</title>
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      .square {
+        /* 
+           width: 10% 
+           相对于父元素 (body) 的宽度。
+           如果 body 宽度等于视口宽度，则等于视口宽度的 10%。
+        */
+        width: 10%; 
+        
+        /* 
+           height: 10vw 
+           相对于视口 (Viewport) 宽度的 10%。
+           1vw = 1% 视口宽度。
+        */
+        height: 10vw; 
+        
+        background: tomato;
+        
+        /* 添加文字居中以便观察 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+      }
+      
+      .info {
+        position: absolute;
+        top: 120%;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        color: #333;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="square">
+      Square
+      <div class="info">
+        Width: 10% of Body (≈10% Viewport)<br/>
+        Height: 10vw (10% Viewport Width)
+      </div>
+    </div>
+  </body>
+</html>

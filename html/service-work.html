@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Service Work Form</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 20px;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      input,
+      textarea {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+      }
+      #status {
+        margin-top: 20px;
+        color: green;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="btn">授权</button>
+    <h1>Service Worker Form Demo</h1>
+
+    <form id="myForm">
+      <div class="form-group">
+        <label for="name">Name:</label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          placeholder="Enter your name"
+        />
+      </div>
+      <div class="form-group">
+        <label for="email">Email:</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="Enter your email"
+        />
+      </div>
+      <div class="form-group">
+        <label for="content">Content:</label>
+        <textarea
+          id="content"
+          name="content"
+          rows="4"
+          placeholder="Enter content"
+        ></textarea>
+      </div>
+      <button type="submit">Submit</button>
+    </form>
+
+    <div id="status"></div>
+
+    <script>
+      const btn = document.getElementById("btn");
+      btn.addEventListener("click", async () => {
+        try {
+          // 1. 请求权限并等待结果
+          const permission = await Notification.requestPermission();
+          
+          // 2. 检查是否已授权
+          if (permission === 'granted') {
+            // 3. 创建通知，建议添加 body 选项以获得更好的展示效果
+            new Notification("待办列表", {
+              body: "您已成功授权通知权限！",
+              icon: "" // 可选：图标路径
+            });
+          } else {
+            console.log("用户拒绝了通知权限");
+            alert("请允许通知权限以接收提醒");
+          }
+        } catch (error) {
+          console.error("通知权限请求失败:", error);
+        }
+      });
+
+      // 1. 自动填充逻辑：从 localStorage 恢复数据
+      document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("myForm");
+        const inputs = form.querySelectorAll("input, textarea");
+
+        // 恢复数据
+        inputs.forEach((input) => {
+          const savedValue = localStorage.getItem(`form_${input.name}`);
+          if (savedValue) {
+            input.value = savedValue;
+          }
+
+          // 监听输入并实时保存
+          input.addEventListener("input", (e) => {
+            localStorage.setItem(`form_${e.target.name}`, e.target.value);
+            showStatus("Draft saved locally.");
+          });
+        });
+
+        // 防止表单提交刷新页面导致数据丢失感（可选，这里仅阻止默认行为演示）
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          alert("Form submitted! Data is also saved in localStorage.");
+          // 清除本地缓存或保留取决于需求，这里保留
+        });
+      });
+
+      function showStatus(msg) {
+        const statusEl = document.getElementById("status");
+        statusEl.textContent = msg;
+        setTimeout(() => {
+          statusEl.textContent = "";
+        }, 3000);
+      }
+
+      // 2. 注册 Service Worker
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("./sw.js")
+            .then((registration) => {
+              console.log("SW registered: ", registration);
+            })
+            .catch((registrationError) => {
+              console.log("SW registration failed: ", registrationError);
+            });
+        });
+
+        // 监听来自 Service Worker 的消息 (用于实现“通知”部分，虽然SW很难在页面关闭后主动发消息)
+        navigator.serviceWorker.addEventListener("message", (event) => {
+          console.log("Message from SW:", event.data);
+          if (event.data.type === "SAVE_CONFIRMATION") {
+            // 如果页面还活着，显示通知
+            alert(event.data.message);
+          }
+        });
+      }
+
+      // 3. 模拟“关闭后通知”的替代方案：
+      // 当页面隐藏时，我们无法可靠地在5秒后执行代码。
+      // 但我们可以在页面再次可见时，告知用户数据已安全保存。
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          // 页面重新打开/激活
+          const hasData = localStorage.getItem("form_name");
+          if (hasData) {
+            showStatus(
+              "Welcome back! Your form data was automatically saved and restored.",
+            );
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -2,10 +2,19 @@
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
 // import HelloWorld from './components/HelloWorld.vue'
+import { provide, ref } from "vue";
+const msg = ref("Hello World");
+provide("message", msg);
+
+const handleClick = () => {
+  console.log("Button clicked!");
+  msg.value += "!";
+};
 </script>
 
 <template>
   <div>
+    <button @click="handleClick">test</button>
     <!-- <a href="https://vitejs.dev" target="_blank">
       <img src="/vite.svg" class="logo" alt="Vite logo" />
     </a>

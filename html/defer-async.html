@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Defer vs Async</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        #log { background: #f4f4f4; padding: 10px; border: 1px solid #ddd; margin-top: 20px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Script 加载模式演示</h1>
+    <p>请打开浏览器控制台 (F12) 查看详细的时间戳和顺序。</p>
+    <div id="log"></div>
+
+    <script>
+        function log(msg) {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            const p = document.createElement('p');
+            p.textContent = `[${time}] ${msg}`;
+            logDiv.appendChild(p);
+            console.log(`[${time}] ${msg}`);
+        }
+
+        log('1. HTML 开始解析 (Head 中)');
+    </script>
+
+    <!-- 
+      普通 script: 
+      - 阻塞 HTML 解析，直到脚本下载并执行完毕。
+      - 如果放在 head 中，会延迟页面渲染。
+    -->
+    <script>
+        // 模拟一个耗时操作或外部脚本执行
+        log('2. 普通 Script 执行 (阻塞中...)');
+    </script>
+
+    <script>
+        log('3. HTML 继续解析 (Body 开始)');
+    </script>
+
+    <!-- 
+      async (异步): 
+      - 不阻塞 HTML 解析，脚本在下载完成后立即执行。
+      - 执行顺序不确定，取决于哪个脚本先下载完。
+      - 适合独立脚本（如统计代码），不依赖 DOM 或其他脚本。
+    -->
+    <!-- 注意：内联脚本不支持 async/defer，这里仅做结构演示，实际需引用外部文件 -->
+    <!-- <script async src="async-script.js"></script> -->
+    <script>
+        // 模拟 async 行为：在后台“下载”后尽快执行
+        setTimeout(() => {
+            log('4. Async Script 执行 (下载完成后立即执行，不保证顺序)');
+        }, Math.random() * 1000);
+    </script>
+
+    <!-- 
+      defer (延迟): 
+      - 不阻塞 HTML 解析，脚本在下载完成后，等到 HTML 解析完毕（DOMContentLoaded 之前）才执行。
+      - 保证按照在文档中出现的顺序执行。
+      - 适合需要操作 DOM 的脚本。
+    -->
+    <!-- <script defer src="defer-script.js"></script> -->
+    
+    <script>
+        log('5. HTML 解析完成前，Defer 脚本等待中...');
+    </script>
+
+    <!-- 模拟 DOM 内容 -->
+    <div id="content">Some Content</div>
+
+    <script>
+        log('6. HTML 解析结束 (DOM Ready)');
+        
+        // 模拟 Defer 脚本在 DOM 解析完成后执行
+        window.addEventListener('DOMContentLoaded', () => {
+             log('7. Defer Script 执行 (HTML 解析完成后，按顺序执行)');
+        });
+
+        // 模拟 Async 可能已经执行或稍后执行
+        setTimeout(() => {
+             log('8. Async Script 可能在此时或之前已执行');
+        }, 1500);
+    </script>
+</body>
+</html>

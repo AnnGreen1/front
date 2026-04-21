@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<style>
+  /* 容器，为了演示居中 */
+  body {
+    background: #222;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-family: sans-serif;
+  }
+
+  /* --- 梯形核心样式 --- */
+  .trapezoid {
+    /* 1. 文字颜色和基本对齐 */
+    color: white;
+    text-align: center;
+    /* 必须设为相对定位，方便内部文字调整 */
+    position: relative;
+    /* 2. 关键：左右边框制造斜度 */
+    /* 这里的 20px 决定了梯形的倾斜程度 */
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    /* 3. 关键：底部边框作为梯形的主体颜色 */
+    /* 这里的 50px 决定了梯形的高度 */
+    border-bottom: 50px solid #007bff; /* 蓝色 */
+  }
+
+  /* --- 文字内容样式 --- */
+  .trapezoid span {
+    /* 必须设为块级元素 */
+    display: block;
+    /* 4. 关键：把文字向上提，进入梯形的有色区域 */
+    /* 负值通常等于或略小于 border-bottom 的高度 */
+    margin-top: -40px;
+    /* 防止文字被边框遮挡或溢出 */
+    /* 这里的 40px 是为了留出一点内边距 */
+    height: 40px;
+    line-height: 40px; /* 垂直居中文字 */
+  }
+
+  /* --- 不同的颜色变体 --- */
+  .blue { border-bottom-color: #007bff; }
+  .orange { border-bottom-color: #d35400; }
+  .purple { border-bottom-color: #8e44ad; }
+
+</style>
+</head>
+<body>
+
+  <!-- 低压力 -->
+  <div class="trapezoid blue" style="width: 200px;">
+    <span>低压力</span>
+  </div>
+
+  <br>
+
+  <!-- 中压力 -->
+  <div class="trapezoid orange" style="width: 240px;">
+    <span>中度压力</span>
+  </div>
+
+  <br>
+
+  <!-- 高压力 -->
+  <div class="trapezoid purple" style="width: 280px;">
+    <span>高度压力</span>
+  </div>
+
+</body>
+</html>

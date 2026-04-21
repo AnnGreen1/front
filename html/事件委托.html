@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>事件委托示例</title>
+</head>
+<body>
+    <ul id="parent-list">
+        <li id="item1">Item 1</li>
+        <li id="item2">Item 2</li>
+        <li id="item3">Item 3</li>
+        <li id="item4">Item 4</li>
+    </ul>
+
+    <script>
+        // 获取父元素
+        const parentList = document.getElementById('parent-list');
+
+        // 在父元素上添加事件监听器
+        parentList.addEventListener('click', function(event) {
+            // 检查被点击的元素是否是 LI 元素
+            if (event.target && event.target.nodeName === 'LI') {
+                console.log('List item ', event.target.id.replace('item', ''), ' was clicked!');
+                alert('你点击了: ' + event.target.textContent);
+            }
+        });
+    </script>
+</body>
+</html>

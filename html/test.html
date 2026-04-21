@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Position Properties Comparison</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f0f0f0;
+      }
+
+      .container {
+        position: relative; /* 作为 absolute 定位的参考父元素 */
+        width: 600px;
+        height: 400px;
+        background-color: #fff;
+        border: 2px solid #333;
+        margin-bottom: 20px;
+        overflow: auto; /* 确保内容溢出时可滚动，以便观察 sticky 和 fixed */
+      }
+
+      .box {
+        width: 100px;
+        height: 50px;
+        line-height: 50px;
+        text-align: center;
+        color: white;
+        margin: 10px;
+        border-radius: 4px;
+      }
+
+      /* static: 默认值，元素出现在正常的流中 */
+      .static-box {
+        position: static;
+        background-color: #999;
+      }
+
+      /* relative: 相对定位，相对于其正常位置进行定位 */
+      .relative-box {
+        position: relative;
+        top: 20px;
+        left: 20px;
+        background-color: #2196f3;
+      }
+
+      /* absolute: 绝对定位，相对于最近的已定位祖先元素定位 */
+      .absolute-box {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background-color: #ff5722;
+      }
+
+      /* fixed: 固定定位，相对于浏览器窗口定位 */
+      .fixed-box {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: #4caf50;
+        z-index: 1000;
+      }
+
+      /* sticky: 粘性定位，基于用户的滚动位置在 relative 和 fixed 之间切换 */
+      .sticky-box {
+        position: sticky;
+        top: 0;
+        background-color: #9c27b0;
+        margin-top: 100px; /* 增加间距以便观察滚动效果 */
+      }
+
+      .spacer {
+        height: 800px; /* 增加页面高度以测试 fixed 和 sticky */
+        background: linear-gradient(to bottom, #eee, #ddd);
+        padding: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CSS Position Properties Example</h1>
+
+    <div class="container">
+      <h3>Container (position: relative)</h3>
+
+      <div class="box static-box">Static</div>
+      <div class="box relative-box">Relative</div>
+      <div class="box absolute-box">Absolute</div>
+
+      <p style="padding: 10px">
+        Scroll inside this container to see the effect of other positions if
+        applicable. Note: Sticky works within the scrolling ancestor.
+      </p>
+
+      <!-- 用于演示 sticky 的效果，需要容器可滚动且有足够内容 -->
+      <div style="height: 500px; background-color: #fafafa; padding: 10px">
+        <div class="box sticky-box">Sticky</div>
+        <p>Content below sticky box...</p>
+        <p>Keep scrolling...</p>
+        <p>More content...</p>
+        <p>End of container content.</p>
+        <p>End of container content.</p>
+        <p>End of container content.</p>
+        <p>End of container content.</p>
+        <p>End of container content.</p>
+        <p>End of container content.</p>
+        <p>End of container content.</p>
+        <p>End of container content.</p>
+        <p>End of container content.</p>
+        <p>End of container content.</p>
+        <p>End of container content.</p>
+      </div>
+    </div>
+
+    <div class="spacer">
+      <p>Page content to demonstrate Fixed position.</p>
+      <p>Scroll down the page...</p>
+    </div>
+
+    <div class="box fixed-box">Fixed</div>
+  </body>
+</html>

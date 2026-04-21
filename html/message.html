@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>message (Parent)</title>
+  </head>
+  <body>
+    <h1>1 </h1>
+ 
+    <button onclick="post()">Post Message to Child</button>
+
+    <script>
+      // 标签页 A 和 标签页 B 都执行这段代码
+      const channel = new BroadcastChannel("my_channel");
+
+      function post() {
+        // 发送
+        channel.postMessage({ text: "全员广播" });
+      }
+
+      // 接收
+      channel.onmessage = (event) => {
+        console.log("收到消息:", event.data);
+      };
+    </script>
+  </body>
+</html>

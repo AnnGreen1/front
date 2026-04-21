@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="content">
+        <div class="box">
+          <button>click</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const btn = document.querySelector("button");
+      btn.addEventListener(
+        "click",
+        function (e) {
+          console.log("button", e.target);
+        },
+        true,
+      );
+
+      const box = document.querySelector(".box");
+      box.addEventListener(
+        "click",
+        function (e) {
+          console.log("box", e.target);
+        },
+        true,
+      );
+
+      const content = document.querySelector(".content");
+      content.addEventListener(
+        "click",
+        function (e) {
+          console.log("content", e.target);
+        },
+        true,
+      );
+
+      const container = document.querySelector(".container");
+      container.addEventListener(
+        "click",
+        function (e) {
+          console.log("container", e.target);
+        },
+        true,
+      );
+    </script>
+  </body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Background-clip 属性演示</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .box {
+            width: 200px;
+            height: 150px;
+            border: 10px dashed rgba(255, 0, 0, 0.5); /* 红色虚线边框 */
+            padding: 20px;
+            background-color: #4CAF50; /* 绿色背景 */
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* 1. border-box (默认值): 背景延伸到边框外沿 */
+        .clip-border {
+            background-clip: border-box;
+        }
+
+        /* 2. padding-box: 背景延伸到内边距外沿，不覆盖边框 */
+        .clip-padding {
+            background-clip: padding-box;
+        }
+
+        /* 3. content-box: 背景只延伸到内容区外沿，不覆盖内边距和边框 */
+        .clip-content {
+            background-clip: content-box;
+        }
+
+        /* 4. text: 背景被裁剪为文字的前景色 (需要 -webkit- 前缀兼容) */
+        .clip-text {
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent; /* 文字颜色透明，显示背景 */
+            background-image: linear-gradient(to right, #ff7e5f, #feb47b); /* 使用渐变背景以便观察 */
+            border: none; /* text-clip 通常不需要边框干扰视觉 */
+            padding: 0;
+            font-size: 24px;
+        }
+        
+        .label {
+            position: absolute;
+            top: -25px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .wrapper {
+            position: relative;
+            margin-top: 25px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 style="text-align: center;">background-clip 属性演示</h1>
+    <p style="text-align: center; color: #666;">注意观察绿色背景相对于红色虚线边框和内边距的位置</p>
+
+    <div class="container">
+        <!-- border-box -->
+        <div class="wrapper">
+            <div class="label">border-box (默认)</div>
+            <div class="box clip-border">
+                背景延伸至<br>边框外沿
+            </div>
+        </div>
+
+        <!-- padding-box -->
+        <div class="wrapper">
+            <div class="label">padding-box</div>
+            <div class="box clip-padding">
+                背景延伸至<br>内边距外沿
+            </div>
+        </div>
+
+        <!-- content-box -->
+        <div class="wrapper">
+            <div class="label">content-box</div>
+            <div class="box clip-content">
+                背景仅限于<br>内容区域
+            </div>
+        </div>
+
+        <!-- text -->
+        <div class="wrapper">
+            <div class="label">text (文字裁剪)</div>
+            <div class="box clip-text">
+                Background<br>Clip Text
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
