@@ -1,39 +1,47 @@
 <template>
-  <div class="">
-    <div style="background: pink;padding: 100px;" @click="pink">
-      <div style="background: cyan;padding: 100px;" @click="cyan">
-        <input type="text" v-model.number="a" />
-        <input type="text" v-model.number="b" />
-        <div style="background: red;" @click="red">{{ sum }}</div>
-      </div>
-    </div>
+  <div>
+    <!-- 在模板里多次使用同一个计算属性 -->
+    <p>全名: {{ fullName }}</p>
+    <p>全名: {{ fullName }}</p>
+    <p>全名: {{ fullName }}</p>
+
+    <button @click="updateName">更新名字</button>
+
+    <div class="box"></div>
+
+    <div class="box2"></div>
   </div>
 </template>
 
 <script setup>
-import { computed, isRef, onMounted, reactive, ref } from 'vue'
+import { ref, computed } from "vue";
 
-const a = ref(0)
-const b = ref(0)
-const sum = computed(() => {
-  console.log('计算了')
-  return a.value + b.value
-})
-onMounted(() => {
-  sessionStorage.setItem('test', '123')
+const firstName = ref("张");
+const lastName = ref("三");
 
-})
+const fullName = computed(() => {
+  // 我们在里面放一个“探测器”
+  console.log("计算属性 fullName 执行了！");
+  return firstName.value + " " + lastName.value;
+});
 
-const pink = () => {
-  console.log('pink')
-}
-
-const cyan = () => {
-  console.log('cyan')
-}
-
-const red = () => {
-  console.log('red');
-
-}
+const updateName = () => {
+  firstName.value = "李";
+};
 </script>
+
+<style scoped lang="scss">
+.box {
+  width: 100px;
+  height: 100px;
+  // background-color: red;
+  background: url(../assets/logo.svg);
+}
+
+.box2 {
+  width: 100px;
+  height: 100px;
+  // background-color: red;
+  background: url(@/assets/logo.svg);
+}
+</style>

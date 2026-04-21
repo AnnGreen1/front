@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <!-- <input type="text" value="初始值" /> -->
+    <input type="text" value="初始值" />
+    <button onclick="log()">log</button>
+    <script>
+      const input = document.querySelector("input");
+      // 1. 页面加载时，两者相同
+      console.log(input);
+      console.log(input.getAttribute("value")); // "初始值"
+      console.log(input.value); // "初始值"
+      console.log(input.type);
+
+      function log() {
+        console.log(input);
+        console.log(input.getAttribute("value")); // "初始值"
+        console.log(input.value); // "你好"
+        console.log(input.type);
+      }
+      //   // 2. 假设你在输入框里手动输入了 "你好"
+      //   // 此时：
+      //   console.log(input.getAttribute("value")); // 依然是 "初始值" (HTML没变)
+      //   console.log(input.value); // 变成了 "你好" (DOM属性变了)
+    </script>
+  </body>
+</html>

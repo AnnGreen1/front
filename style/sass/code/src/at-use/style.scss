@@ -1,0 +1,7 @@
+// style.scss
+@use 'foundation/code';
+@use 'foundation/lists';
+
+p{
+    font-size: code.$fontSize;
+}

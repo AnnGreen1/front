@@ -1,0 +1,35 @@
+// 定义变量
+$primary-color: #3498db;
+$side: left;
+$font-size-base: 16px;
+
+// 1. 在选择器中使用插值
+.btn-#{$side} {
+  text-align: #{$side};
+  color: $primary-color;
+}
+
+// 2. 在属性名中使用插值
+.margin-#{$side} {
+  margin-#{$side}: 10px;
+}
+
+// 3. 在字符串/URL中使用插值
+.icon {
+  background-image: url('/images/icon-#{$side}.png');
+  content: "The side is #{$side}";
+}
+
+// 4. 在媒体查询中使用插值
+$breakpoint: 768px;
+
+@media (min-width: #{$breakpoint}) {
+  .responsive-box {
+    width: 100%;
+  }
+}
+
+// 5. 混合使用变量计算
+h1 {
+  font-size: #{$font-size-base * 2};
+}

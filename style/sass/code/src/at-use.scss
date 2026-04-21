@@ -1,0 +1,31 @@
+// 1. 加载 Sass 内置模块 (例如 math 模块)
+@use "sass:math";
+
+// 2. 加载自定义模块 (假设存在一个名为 'variables' 的局部文件 _variables.scss)
+// @use "variables"; 
+// 注意：在实际项目中，你需要确保被引用的文件存在。
+// 为了演示语法，这里我们主要使用内置模块 sass:color 和 sass:math 进行展示
+
+$base-color: #036;
+
+.header {
+  // 3. 通过命名空间访问模块中的函数
+  // 使用 sass:color 模块调整颜色亮度
+  background-color: sass.color.adjust($base-color, $lightness: -10%);
+  
+  // 使用 sass:math 模块进行计算
+  width: math.div(100%, 3);
+}
+
+// 4. 使用 as 关键字重命名命名空间
+@use "sass:meta" as m;
+
+.footer {
+  // 通过重命名的命名空间访问
+  @if m.variable-exists(base-color) {
+    content: "base-color exists";
+  }
+}
+
+// 5. 如果不想使用命名空间，可以使用 as * (仅推荐在完全控制命名冲突时使用)
+// @use "sass:map" as *;
