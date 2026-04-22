@@ -1,0 +1,10 @@
+// 1. 定义函数
+@function px-to-rem($px) {
+  @return $px / 16px * 1rem; // 必须用 @return 返回结果
+}
+
+// 2. 使用函数
+body {
+  font-size: px-to-rem(32); // 编译后变成 font-size: 2rem;
+  padding: px-to-rem(16);   // 编译后变成 padding: 1rem;
+}

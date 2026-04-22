@@ -1,1 +1,1 @@
-{"version":3,"sourceRoot":"","sources":["interpolation.scss"],"names":[],"mappings":"AAMA;EACE;EACA,OAPc;;;AAWhB;EACE;;;AAIF;EACE;EACA;;;AAMF;EACE;IACE;;;AAKJ;EACE","file":"style.css"}
+{"version":3,"sourceRoot":"","sources":["parent-selector.scss"],"names":[],"mappings":"AAGE;EACE;;AAKF;EACE;EACA;;AAIF;EACE;;;AAIJ;EACE;EACA;EACA;EACA;EACA;;AAEA;EACE;EACA;EACA;EACA;EACA;EACA;;AAEA;EACE","file":"style.css"}

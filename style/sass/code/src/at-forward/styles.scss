@@ -1,0 +1,6 @@
+// styles.scss
+@use "bootstrap";
+
+li {
+  @include bootstrap.list-reset;
+}

@@ -1,17 +1,31 @@
-/* Error: expected "(".
- *    ,
- * 14 |   background-color: sass.color.adjust($base-color, $lightness: -10%);
- *    |                               ^
- *    '
- *   at-use.scss 14:31  root stylesheet */
-
-body::before {
-  font-family: "Source Code Pro", "SF Mono", Monaco, Inconsolata, "Fira Mono",
-      "Droid Sans Mono", monospace, monospace;
-  white-space: pre;
-  display: block;
-  padding: 1em;
-  margin-bottom: 1em;
-  border-bottom: 2px solid black;
-  content: 'Error: expected "(".\a    \2577 \a 14 \2502    background-color: sass.color.adjust($base-color, $lightness: -10%);\a    \2502                                ^\a    \2575 \a   at-use.scss 14:31  root stylesheet';
+.alert:hover {
+  font-weight: bold;
 }
+[dir=rtl] .alert {
+  margin-left: 0;
+  margin-right: 10px;
+}
+:not(.alert) {
+  opacity: 0.8;
+}
+
+.accordion {
+  max-width: 600px;
+  margin: 4rem auto;
+  width: 90%;
+  font-family: "Raleway", sans-serif;
+  background: #f4f4f4;
+}
+.accordion__copy {
+  display: none;
+  padding: 1rem 1.5rem 2rem 1.5rem;
+  color: gray;
+  line-height: 1.6;
+  font-size: 14px;
+  font-weight: 500;
+}
+.accordion__copy--open {
+  display: block;
+}
+
+/*# sourceMappingURL=style.css.map */
