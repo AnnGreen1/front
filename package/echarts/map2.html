@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/6.0.0/echarts.min.js"
+        integrity="sha512-4/g9GAdOdTpUP2mKClpKsEzaK7FQNgMjq+No0rX8XZlfrCGtbi4r+T/p5fnacsEC3zIAmHKLJUL7sh3/yVA4OQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        html {
+            height: 100vh;
+            width: 100vw;
+        }
+
+        body,
+        #main {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="main"></div>
+
+    <script>
+        // import * as echarts from 'echarts';
+        // 假设引入了 coordtransform 用于坐标转换
+        // import coordtransform from 'coordtransform'; 
+
+        const chart = echarts.init(document.getElementById('main'));
+
+        // 1. 模拟数据：包含经纬度（假设是 WGS84，实际需转换）和数值
+        const rawData = [
+            { name: '南京市', value: [118.7969, 32.0603, 100] }, // [经度, 纬度, 数值]
+            { name: '苏州市', value: [120.5853, 31.2989, 80] }
+        ];
+
+        // 2. 坐标转换函数 (WGS84 -> GCJ02)
+        // 注意：ECharts 地图底图通常是 GCJ02，如果不转换，点会偏移
+        function convertData(data) {
+            return data.map(item => {
+                // 真实项目中需解开下面的注释进行转换
+                // const converted = coordtransform.wgs84togcj02(item.value[0], item.value[1]);
+                // return { name: item.name, value: [converted[0], converted[1], item.value[2]] };
+
+                // 此处为了演示直接返回，实际请确保经纬度与地图坐标系一致
+                return item;
+            });
+        }
+
+        const convertedData = convertData(rawData);
+
+        // 3. 核心配置
+        const option = {
+            // 视觉映射组件：控制点的颜色或大小
+            visualMap: {
+                min: 0,
+                max: 100,
+                left: 'left',
+                top: 'bottom',
+                text: ['高', '低'],
+                calculable: true,
+                inRange: {
+                    color: ['#e0f3f8', '#4575b4'] // 颜色渐变
+                }
+            },
+
+            // 提示框
+            tooltip: {
+                trigger: 'item',
+                formatter: function (params) {
+                    return `${params.name}<br/>数值：${params.value[2]}`;
+                }
+            },
+
+            // Geo 组件：定义地图底座
+            geo: {
+                map: 'china', // 对应 registerMap 的名字
+                roam: true,   // 开启鼠标缩放和平移
+                zoom: 1.2,
+                label: {
+                    show: true,
+                    color: '#333'
+                },
+                itemStyle: {
+                    areaColor: '#f3f3f3',
+                    borderColor: '#999',
+                    borderWidth: 1
+                },
+                emphasis: {
+                    itemStyle: {
+                        areaColor: '#d1e0eb' // 鼠标悬停颜色
+                    }
+                }
+            },
+
+            series: [
+                {
+                    name: '中国地图',
+                    type: 'map',
+                    geoIndex: 0, // 关联上面的 geo 组件
+                    data: []     // 地图区域的数据（用于控制颜色）
+                },
+                {
+                    name: '标记点',
+                    type: 'scatter', // 散点图
+                    coordinateSystem: 'geo', // 关键：使用地理坐标系
+                    data: convertedData,
+
+                    // 标记点样式
+                    symbol: 'pin', // 图钉形状
+                    symbolSize: 40,
+                    label: {
+                        show: true,
+                        formatter: '{b}', // 显示地名
+                        position: 'right',
+                        color: '#333'
+                    },
+                    itemStyle: {
+                        color: '#ee6666' // 点的颜色
+                    },
+                    // 涟漪特效配置（可选）
+                    rippleEffect: {
+                        brushType: 'stroke',
+                        scale: 3
+                    }
+                }
+            ]
+        };
+
+        // 4. 异步加载地图数据（模拟）
+        // 实际开发中需 fetch('/path/to/china.json')
+        fetch('./rpc-geojson.json').then(res => res.json()).then(geoJson => {
+            echarts.registerMap('china', geoJson);
+            chart.setOption(option);
+        });
+
+        // 5. 监听点击实现下钻
+        chart.on('click', function (params) {
+            if (params.componentType === 'series' && params.seriesType === 'map') {
+                console.log('点击了区域:', params.name);
+                // 这里根据 params.name 或 adcode 请求下一级地图数据
+                // loadProvinceMap(params.name);
+            }
+        });
+    </script>
+</body>
+
+</html>
