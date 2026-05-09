@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+        <!-- 1. 矩形: x,y是左上角坐标, width,height是宽高, rx/ry是圆角 -->
+        <rect x="10" y="10" width="80" height="50" fill="skyblue" stroke="hotpink" rx="5" />
+
+        <!-- 2. 圆形: cx,cy是圆心坐标, r是半径 -->
+        <circle cx="150" cy="50" r="40" fill="red" />
+
+        <!-- 3. 椭圆: rx,ry分别是横向和纵向半径 -->
+        <ellipse cx="250" cy="50" rx="40" ry="20" fill="green" />
+
+        <!-- 4. 直线: x1,y1是起点, x2,y2是终点 -->
+        <line x1="10" y1="100" x2="290" y2="100" stroke="black" stroke-width="2" />
+    </svg>
+
+
+    <svg width="300" height="100">
+        <!-- 三角形 -->
+        <polygon points="50,10 90,90 10,90" fill="purple" />
+
+        <!-- 路径: M(移动到100,10) L(画线到150,90) L(画线到50,90) Z(闭合) -->
+        <path d="M100 10 L150 90 L50 90 Z" fill="orange" />
+    </svg>
+
+    <svg width="200" height="100">
+        <circle cx="50" cy="50" r="30" fill="blue">
+            <!-- 动画解释: 改变 cx 属性，从 50 变到 150，耗时 2秒，无限循环 -->
+            <animate attributeName="cx" from="50" to="150" dur="2s" repeatCount="indefinite" />
+        </circle>
+    </svg>
+
+
+    <svg viewBox="0 0 30 12" xmlns="http://www.w3.org/2000/svg">
+        <style>
+            line {
+                stroke: black;
+            }
+        </style>
+        <!-- 没有虚线和间隙 -->
+        <line x1="0" y1="1" x2="30" y2="1" />
+
+        <!-- 虚线段和间隙长度相同 -->
+        <line x1="0" y1="3" x2="30" y2="3" stroke-dasharray="4" />
+
+        <!-- 虚线段和间隙长度不同 -->
+        <line x1="0" y1="5" x2="30" y2="5" stroke-dasharray="4 1" />
+
+        <!-- 具有奇数个不同长度的虚线段和间隙 -->
+        <line x1="0" y1="7" x2="30" y2="7" stroke-dasharray="4 1 2" />
+
+        <!-- 具有偶数个不同长度的虚线段和间隙 -->
+        <line x1="0" y1="9" x2="30" y2="9" stroke-dasharray="4 1 2 3" />
+
+        <!-- 以间隙开始的虚线 -->
+        <line x1="0" y1="11" x2="30" y2="11" stroke-dasharray="0 4 0" />
+    </svg>
+</body>
+
+</html>

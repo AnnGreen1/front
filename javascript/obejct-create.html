@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        const person = {
+			isHuman:false,
+			printIntroduction:function(){
+				console.log(`My name is ${this.name}. Am I human? ${this.isHuman}`)
+			}
+		}
+		
+		console.log(person)
+		
+		const me = Object.create(person)
+		console.log(me)
+		console.log(me.isHuman)
+		console.log(me.name)
+		
+		console.log(Array.prototype.__proto__ === Object.prototype)
+		console.log(Array.prototype.__proto__ === Function.prototype)
+			console.log(Date.prototype.__proto__ === Object.prototype)
+		console.log(Function.prototype.__proto__ === Object.prototype)
+		
+		console.log(typeof Array); 
+		
+		
+		// 解释： Function 这个函数，是它自己造的（或者说是它自己构造的）。它是唯一一个 __proto__ 指向自己的 prototype 的东西。
+		console.log(Function.__proto__ === Function.prototype )
+		
+		// 解释： Function 的公共工具箱，本质上也是一个普通的对象，所以它往上找，还是归 Object 管。
+		console.log(Function.prototype.__proto__ === Object.prototype)
+    </script>
+</body>
+</html>

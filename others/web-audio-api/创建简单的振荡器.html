@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>创建简单的振荡器</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        width: 100vw;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="playBtn">播放</button>
+    <script>
+      const playBtn = document.getElementById("playBtn");
+      playBtn.addEventListener("click", () => {
+        // 播放音频
+        playAudio();
+      });
+
+      // 播放音频
+      function playAudio() {
+        // 创建音频上下文
+        const ctx = new AudioContext();
+
+        // 创建振荡器节点
+        const oscillator = ctx.createOscillator();
+
+        // 创建增益节点（控制音量）
+        const gainNode = ctx.createGain();
+
+        // 连接节点
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        // 设置参数
+        oscillator.type = "sine"; // 波形类型: sine, square, sawtooth, triangle
+        oscillator.frequency.setValueAtTime(440, ctx.currentTime); // 440Hz
+        gainNode.gain.setValueAtTime(0.5, ctx.currentTime); // 50% 音量
+
+        // 播放
+        oscillator.start();
+
+        // 3秒后停止
+        setTimeout(() => {
+          oscillator.stop();
+        }, 3000);
+      }
+    </script>
+  </body>
+</html>

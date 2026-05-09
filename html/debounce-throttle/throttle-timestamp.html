@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <button class="shot">shot</button>
+
+    <script>
+      const btn = document.querySelector(".shot");
+
+      function throttle(fn, delay = 1000) {
+        let lastTime = 0; // 记录上次执行的时间戳
+        return function (...args) {
+          let now = Date.now(); // 获取当前时间戳
+          if (now - lastTime >= delay) {
+            fn.apply(this, args);
+            lastTime = now; // 更新上次执行时间
+          }
+        };
+      }
+
+      function shot() {
+        console.log("shot");
+      }
+
+      btn.addEventListener("click", throttle(shot, 3000));
+    </script>
+  </body>
+</html>

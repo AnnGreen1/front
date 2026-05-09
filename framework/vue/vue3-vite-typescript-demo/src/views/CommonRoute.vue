@@ -1,34 +1,29 @@
-<template>
-  <div>
-    <div class="common-style">CommonRoute.vue</div>
-    <button @click="handleClick">???</button>
-    <div>
-      {{ message }}
-    </div>
-  </div>
-</template>
+<script setup lang="ts">
+import MarkdownRender from 'markstream-vue'
+import { ref, onMounted } from 'vue'
 
-<script lang="ts" setup>
-import { ref, isRef, inject, reactive } from "vue";
-const commonRoute = ref("CommonRoute.vue");
-const temp = reactive({ message: "Hello World" });
+const content = ref('')
 
-console.log(commonRoute)
-console.log(temp);
-
-
-
-
-
-console.log(isRef(commonRoute));
-
-const num = 0;
-console.log(isRef(num));
-
-const message = inject("message");
-
-const handleClick = () => {
-  console.log("Button clicked!");
-  message.value += "?";
-};
+onMounted(async () => {
+  try {
+    const response = await fetch('/content.md')
+    const fullContent = await response.text()
+    
+    let i = 0
+    const interval = setInterval(() => {
+      if (i < fullContent.length) {
+        content.value += fullContent[i]
+        i++
+      } else {
+        clearInterval(interval)
+      }
+    }, 50)
+  } catch (error) {
+    console.error('Failed to load markdown file:', error)
+  }
+})
 </script>
+
+<template>
+  <MarkdownRender :content="content" />
+</template>

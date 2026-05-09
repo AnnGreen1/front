@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阿里云TTS流式合成测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: none;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover:not(:disabled) {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        .progress {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: monospace;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <h1>阿里云TTS流式合成</h1>
+    
+    <div class="input-group">
+        <textarea id="textInput" placeholder="请输入要合成的文本..."></textarea>
+    </div>
+    
+    <button id="btnStart">开始合成</button>
+    
+    <div id="status" class="status info">准备就绪</div>
+    <div id="progress" class="progress"></div>
+
+    <script type="module">
+        // 引入外部 PCMAudioPlayer
+        import PCMAudioPlayer from './audio_player.js';
+
+        // 配置参数
+        const APP_KEY = 'CVW7mjKfDxOSfhC7';
+        const TOKEN = '6f172ce460bd47b6b7c7bd46ea000fc1';
+        const WSS_URL = 'wss://nls-gateway-cn-beijing.aliyuncs.com/ws/v1';
+
+        // 状态变量
+        let ws = null;
+        let player = null;
+        let taskId = null;
+        let isSynthesizing = false;
+        let textChunks = [];
+        let currentChunkIndex = 0;
+
+        // DOM元素
+        const textInput = document.getElementById('textInput');
+        const btnStart = document.getElementById('btnStart');
+        const statusDiv = document.getElementById('status');
+        const progressDiv = document.getElementById('progress');
+
+        // 生成UUID
+        function generateUUID() {
+            return Array.from({length: 32}, () => 
+                Math.floor(Math.random() * 16).toString(16)
+            ).join('');
+        }
+
+        // 更新状态
+        function updateStatus(text, type = 'info') {
+            statusDiv.textContent = text;
+            statusDiv.className = `status ${type}`;
+        }
+
+        // 更新进度
+        function updateProgress(text) {
+            progressDiv.textContent += text + '\n';
+            progressDiv.scrollTop = progressDiv.scrollHeight;
+        }
+
+        // 清空进度
+        function clearProgress() {
+            progressDiv.textContent = '';
+        }
+
+        // 随机分割文本
+        function splitTextRandomly(text) {
+            const chunks = [];
+            let remaining = text.trim();
+            
+            while (remaining.length > 0) {
+                const chunkSize = Math.min(
+                    Math.floor(Math.random() * 6) + 3, 
+                    remaining.length
+                );
+                chunks.push(remaining.substring(0, chunkSize));
+                remaining = remaining.substring(chunkSize);
+            }
+            
+            return chunks;
+        }
+
+        // 发送消息到服务器
+        function sendMessage(name, payload = {}) {
+            if (!ws || ws.readyState !== WebSocket.OPEN) return;
+            
+            const message = {
+                header: {
+                    message_id: generateUUID(),
+                    task_id: taskId,
+                    namespace: 'FlowingSpeechSynthesizer',
+                    name: name,
+                    appkey: APP_KEY
+                },
+                payload: payload
+            };
+            
+            ws.send(JSON.stringify(message));
+        }
+
+        // 发送下一段文本
+        function sendNextChunk() {
+            if (currentChunkIndex < textChunks.length) {
+                const chunk = textChunks[currentChunkIndex];
+                updateProgress(`[发送] 片段 ${currentChunkIndex + 1}/${textChunks.length}: "${chunk}"`);
+                sendMessage('RunSynthesis', { text: chunk });
+                currentChunkIndex++;
+                
+                // 不等待响应，直接发送下一段（流式合成允许连续发送）
+                if (currentChunkIndex < textChunks.length) {
+                    setTimeout(sendNextChunk, 200);
+                } else {
+                    // 所有文本片段发送完成，发送结束标识
+                    setTimeout(() => {
+                        updateProgress('[系统] 发送 StopSynthesis 结束合成');
+                        sendMessage('StopSynthesis');
+                    }, 300);
+                }
+            }
+        }
+
+        // 开始合成
+        async function startSynthesis() {
+            const text = textInput.value.trim();
+            
+            if (!text) {
+                updateStatus('请输入要合成的文本', 'error');
+                return;
+            }
+
+            btnStart.disabled = true;
+            isSynthesizing = true;
+            clearProgress();
+            updateStatus('正在初始化...', 'info');
+
+            try {
+                player = new PCMAudioPlayer(24000);
+                player.connect();
+                player.stop();
+
+                textChunks = splitTextRandomly(text);
+                currentChunkIndex = 0;
+                
+                updateProgress(`文本已分割为 ${textChunks.length} 段`);
+                textChunks.forEach((chunk, idx) => {
+                    updateProgress(`  段${idx + 1}: "${chunk}"`);
+                });
+
+                taskId = generateUUID();
+                ws = new WebSocket(`${WSS_URL}?token=${TOKEN}`);
+                ws.binaryType = 'arraybuffer';
+
+                ws.onopen = () => {
+                    updateStatus('连接成功，开始合成...', 'success');
+                    updateProgress('[系统] WebSocket连接已建立');
+                    sendMessage('StartSynthesis', {
+                        voice: 'zhixiaoxia',
+                        format: 'PCM',
+                        sample_rate: 24000,
+                        volume: 100,
+                        speech_rate: 0,
+                        pitch_rate: 0,
+                        enable_subtitle: false,
+                        platform: 'javascript'
+                    });
+                };
+
+                ws.onmessage = (event) => {
+                    const data = event.data;
+                    
+                    if (data instanceof ArrayBuffer) {
+                        player.pushPCM(data);
+                    } else {
+                        const body = JSON.parse(data);
+                        const name = body.header.name;
+                        const status = body.header.status;
+                        
+                        if (name === 'SynthesisStarted' && status === 20000000) {
+                            updateProgress('[系统] 合成已开始，开始发送文本片段...');
+                            sendNextChunk();
+                        }
+                        else if (name === 'SynthesisCompleted' && status === 20000000) {
+                            updateStatus('合成完成！', 'success');
+                            updateProgress('[系统] 合成完成');
+                            cleanup();
+                        }
+                        else if (status !== 20000000) {
+                            updateStatus(`错误: ${body.header.status_text || '未知错误'}`, 'error');
+                            updateProgress(`[错误] ${name}: ${body.header.status_text || status}`);
+                            cleanup();
+                        }
+                    }
+                };
+
+                ws.onerror = (err) => {
+                    updateStatus('连接错误: ' + err.message, 'error');
+                    updateProgress('[错误] ' + err.message);
+                    cleanup();
+                };
+
+                ws.onclose = () => {
+                    if (isSynthesizing) {
+                        updateStatus('连接已关闭', 'info');
+                    }
+                };
+
+            } catch (err) {
+                updateStatus('初始化失败: ' + err.message, 'error');
+                cleanup();
+            }
+        }
+
+        // 清理资源
+        function cleanup() {
+            isSynthesizing = false;
+            btnStart.disabled = false;
+            
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        // 绑定事件
+        btnStart.addEventListener('click', startSynthesis);
+
+        textInput.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                startSynthesis();
+            }
+        });
+    </script>
+</body>
+</html>

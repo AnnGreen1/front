@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+
+      .header {
+        margin: 50px;
+        display: grid;
+        width: 300px;
+        height: 300px;
+        grid-template-columns: [c1-start] 100px [c1-end c2-start] 100px [c2-end c3-start] 100px [c3-end];
+        grid-template-rows: [r1-start] 100px [r1-end r2-start] 100px [r2-end r3-start] 100px [r3-end];
+        border: 5px solid #cfcfce;
+      }
+      .header .div1 {
+        background-color: blueviolet;
+        grid-row-start: r2-start;
+        grid-column-start: c1-end;
+        grid-row-end: r2-end;
+        grid-column-end: c3-start;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="div1">1</div>
+    </div>
+  </body>
+</html>

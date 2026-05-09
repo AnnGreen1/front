@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>播放音频文件</title>
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        width: 100vw;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="playBtn">播放</button>
+    <script>
+      const playBtn = document.getElementById("playBtn");
+      playBtn.addEventListener("click", () => {
+        // 播放音频
+        draw();
+      });
+
+      // 使用 AnalyserNode 实现频谱分析
+      const ctx = new AudioContext();
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+
+      // 获取频率数据
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      // 连接到音频源
+      source.connect(analyser);
+      analyser.connect(ctx.destination);
+
+      // 在 Canvas 上绘制频谱
+      function draw() {
+        analyser.getByteFrequencyData(dataArray);
+
+        // 绘制逻辑...
+        requestAnimationFrame(draw);
+      }
+    </script>
+  </body>
+</html>

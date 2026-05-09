@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>环境光检测</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #1a1a1a;
+      color: white;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    video {
+      width: 100%;
+      max-width: 640px;
+      border-radius: 8px;
+      background: #000;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .controls {
+      margin-top: 20px;
+    }
+    button {
+      padding: 12px 24px;
+      margin: 0 8px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    #startBtn {
+      background-color: #4CAF50;
+      color: white;
+    }
+    #startBtn:hover {
+      background-color: #45a049;
+    }
+    #stopBtn {
+      background-color: #f44336;
+      color: white;
+    }
+    #stopBtn:hover {
+      background-color: #d32f2f;
+    }
+    #detectBtn {
+      background-color: #2196F3;
+      color: white;
+    }
+    #detectBtn:hover {
+      background-color: #1976D2;
+    }
+    #status {
+      margin-top: 15px;
+      color: #888;
+      font-size: 14px;
+    }
+    .error { color: #f44336; }
+    .success { color: #4CAF50; }
+    .warning { color: #ff9800; }
+    
+    .light-result {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 8px;
+      background-color: rgba(255,255,255,0.1);
+    }
+    .light-value {
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .light-description {
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>环境光检测</h1>
+    <video id="video" autoplay playsinline></video>
+    
+    <div class="controls">
+      <button id="startBtn">开启摄像头</button>
+      <button id="stopBtn" disabled>停止</button>
+      <button id="detectBtn" disabled>检测环境光</button>
+    </div>
+    
+    <div id="status">点击"开启摄像头"按钮开始</div>
+    
+    <div id="lightResult" class="light-result" style="display: none;">
+      <div class="light-value" id="lightValue">--</div>
+      <div class="light-description" id="lightDesc">请先开启摄像头并点击检测</div>
+    </div>
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const detectBtn = document.getElementById('detectBtn');
+    const status = document.getElementById('status');
+    const lightResult = document.getElementById('lightResult');
+    const lightValue = document.getElementById('lightValue');
+    const lightDesc = document.getElementById('lightDesc');
+    
+    let stream = null;
+
+    async function startCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'environment',
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+          },
+          audio: false
+        });
+        
+        video.srcObject = stream;
+        
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        detectBtn.disabled = false;
+        status.textContent = '摄像头已开启，点击"检测环境光"按钮';
+        status.className = 'success';
+      } catch (error) {
+        console.error('无法访问摄像头:', error);
+        status.textContent = `错误: ${error.message}`;
+        status.className = 'error';
+      }
+    }
+
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+        video.srcObject = null;
+        
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        detectBtn.disabled = true;
+        status.textContent = '摄像头已停止';
+        status.className = '';
+        lightResult.style.display = 'none';
+      }
+    }
+
+    function detectLightIntensity() {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      console.log(imageData)
+      const data = imageData.data;
+      let totalBrightness = 0;
+      let pixelCount = 0;
+      
+      // 采样部分像素提高性能（每4x4像素采样一个）
+      for (let y = 0; y < canvas.height; y += 4) {
+        for (let x = 0; x < canvas.width; x += 4) {
+          const index = (y * canvas.width + x) * 4;
+          const r = data[index];
+          const g = data[index + 1];
+          const b = data[index + 2];
+          // 加权平均：人眼对绿色最敏感
+          const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+          totalBrightness += brightness;
+          pixelCount++;
+        }
+      }
+      
+      return totalBrightness / pixelCount;
+    }
+
+    function getLightLevel(brightness) {
+      if (brightness < 30) return { level: '极暗', color: '#9c27b0', tips: '环境光线极暗，请打开灯光' };
+      if (brightness < 60) return { level: '较暗', color: '#f44336', tips: '环境光线偏暗，建议增加照明' };
+      if (brightness < 100) return { level: '适中', color: '#ff9800', tips: '环境光线适中' };
+      if (brightness < 150) return { level: '明亮', color: '#4CAF50', tips: '环境光线充足' };
+      return { level: '过亮', color: '#2196F3', tips: '环境光线过亮，建议降低亮度' };
+    }
+
+    function handleDetect() {
+      if (!stream) return;
+      
+      const brightness = detectLightIntensity();
+      const levelInfo = getLightLevel(brightness);
+      
+      lightValue.textContent = Math.round(brightness);
+      lightValue.style.color = levelInfo.color;
+      lightDesc.textContent = `${levelInfo.level} - ${levelInfo.tips}`;
+      lightDesc.style.color = levelInfo.color;
+      lightResult.style.display = 'block';
+      
+      status.textContent = '检测完成';
+      status.className = 'success';
+    }
+
+    startBtn.addEventListener('click', startCamera);
+    stopBtn.addEventListener('click', stopCamera);
+    detectBtn.addEventListener('click', handleDetect);
+  </script>
+</body>
+</html>

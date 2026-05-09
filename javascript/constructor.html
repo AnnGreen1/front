@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+	</head>
+	<body>
+		<script>
+			function Human(name) {
+			    this.name = name;
+			}
+			
+			const zhangSan = new Human('张三');
+			
+			// 1. 实例通过 __proto__ 找到原型
+			console.log(zhangSan.__proto__ === Human.prototype); // true
+			
+			// 2. 原型通过 constructor 找回构造函数
+			console.log(Human.prototype.constructor === Human); // true
+			
+			// 3. 实例直接通过 constructor 找到自己的“爸爸”
+			console.log(zhangSan.constructor === Human); // true
+			// (注意：zhangSan 自己身上没有 constructor，它是顺着 __proto__ 找到的)
+		</script>
+	</body>
+</html>

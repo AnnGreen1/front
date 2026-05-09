@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>JS 原型概念演示</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+        .code-block { background: #282c34; color: #abb2bf; padding: 15px; border-radius: 5px; font-family: 'Consolas', monospace; margin-bottom: 20px; }
+        .comment { color: #7f848e; font-style: italic; }
+        .keyword { color: #c678dd; } /* purple */
+        .func { color: #61afef; } /* blue */
+        .string { color: #98c379; } /* green */
+        .console-log { color: #e5c07b; } /* yellow */
+    </style>
+</head>
+<body>
+
+    <h2>👇 查看代码注释，理解原型、原型链和构造函数</h2>
+    
+    <!-- 这是一个展示代码的区域，实际逻辑在下面的 script 标签里 -->
+    <div class="code-block">
+        <span class="comment">// 1. 构造函数（模具）</span><br>
+        <span class="keyword">function</span> <span class="func">Human</span>(name, age) {<br>
+        &nbsp;&nbsp;<span class="keyword">this</span>.name = name; <span class="comment">// 张三独有的名字</span><br>
+        &nbsp;&nbsp;<span class="keyword">this</span>.age = age;   <span class="comment">// 张三独有的年龄</span><br>
+        }<br><br>
+
+        <span class="comment">// 2. 原型（公共工具箱）</span><br>
+        <span class="comment">// 我们把“走路”这个技能放在工具箱里，大家都共用</span><br>
+        <span class="func">Human</span>.<span class="func">prototype</span>.walk = <span class="keyword">function</span>() {<br>
+        &nbsp;&nbsp;<span class="console-log">console</span>.<span class="func">log</span>(<span class="string">this</span>.name + <span class="string">" 正在用两条腿走路..."</span>);<br>
+        };<br><br>
+
+        <span class="comment">// 3. 实例化（造人）</span><br>
+        <span class="keyword">const</span> zhangSan = <span class="keyword">new</span> <span class="func">Human</span>(<span class="string">"张三"</span>, 20);<br>
+        <span class="keyword">const</span> liSi = <span class="keyword">new</span> <span class="func">Human</span>(<span class="string">"李四"</span>, 25);<br><br>
+
+        <span class="comment">// --- 验证阶段 ---</span><br>
+        <span class="comment">// 4. 调用方法（去工具箱找技能）</span><br>
+        zhangSan.<span class="func">walk</span>(); <span class="comment">// 输出：张三 正在用两条腿走路...</span><br>
+        liSi.<span class="func">walk</span>();   <span class="comment">// 输出：李四 正在用两条腿走路...</span><br><br>
+
+        <span class="comment">// 5. 验证原型链（寻亲）</span><br>
+        <span class="console-log">console</span>.<span class="func">log</span>(<span class="string">"张三身上有 walk 吗？"</span>, zhangSan.hasOwnProperty(<span class="string">'walk'</span>)); <span class="comment">// false (自己没有)</span><br>
+        <span class="console-log">console</span>.<span class="func">log</span>(<span class="string">"张三的__proto__指向 Human.prototype 吗？"</span>, zhangSan.__proto__ === Human.<span class="func">prototype</span>); <span class="comment">// true (指引条正确)</span><br>
+        <span class="console-log">console</span>.<span class="func">log</span>(<span class="string">"Human.prototype 的__proto__指向 Object.prototype 吗？"</span>, Human.<span class="func">prototype</span>.__proto__ === Object.<span class="func">prototype</span>); <span class="comment">// true (找到了祖宗)</span>
+    </div>
+
+    <script>
+        // ==========================================
+        // 下面是实际运行的 JavaScript 代码
+        // ==========================================
+
+        // 1. 构造函数 (模具)
+        function Human(name, age) {
+            // 这里的 this 指的是将来造出来的具体的人（张三或李四）
+            this.name = name;
+            this.age = age;
+        }
+
+        // 2. 原型 (公共工具箱)
+        // 我们把 walk 方法放在 Human 的 prototype 上
+        Human.prototype.walk = function() {
+            console.log(this.name + " 正在走路... (这个方法是从工具箱里拿的)");
+        };
+
+        // 3. 实例化 (造人)
+        const zhangSan = new Human("张三", 20);
+        const liSi = new Human("李四", 25);
+
+        // --- 让我们看看效果 ---
+        
+        // 4. 调用方法
+        // 当调用 walk 时，JS 发现 zhangSan 自己身上没有 walk
+        // 于是顺着 __proto__ 找到了 Human.prototype，发现了 walk
+        zhangSan.walk(); 
+        liSi.walk();
+
+        // 5. 验证原型链 (打开控制台查看)
+        console.log("--- 原型链验证 ---");
+        
+        // 验证1：张三自己身上有 walk 吗？
+        console.log("张三自己身上有 walk 吗？", zhangSan.hasOwnProperty('walk')); 
+        // 结果: false
+
+        // 验证2：张三的 __proto__ 是不是指向 Human 的 prototype？
+        console.log("张三.__proto__ === Human.prototype ?", zhangSan.__proto__ === Human.prototype);
+        // 结果: true (这就是那条“脐带”)
+
+        // 验证3：Human 的 prototype 是不是指向 Object 的 prototype？
+        console.log("Human.prototype.__proto__ === Object.prototype ?", Human.prototype.__proto__ === Object.prototype);
+        // 结果: true (这就是找到了“祖宗”)
+
+        // 验证4：Object 的 prototype 上面还有吗？
+        console.log("Object.prototype.__proto__ 是什么？", Object.prototype.__proto__);
+        // 结果: null (到头了)
+		
+		console.log(Human.prototype.constructor === Human)
+    </script>
+</body>
+</html>

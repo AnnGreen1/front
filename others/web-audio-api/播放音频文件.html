@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>播放音频文件</title>
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        width: 100vw;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="playBtn">播放</button>
+    <script>
+      const playBtn = document.getElementById("playBtn");
+      playBtn.addEventListener("click", () => {
+        // 播放音频
+        playAudio("zhiqi.wav");
+      });
+
+      async function playAudio(url) {
+        const ctx = new AudioContext();
+
+        // 加载音频文件
+        const response = await fetch(url);
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+
+        // 创建音频缓冲区源节点
+        const source = ctx.createBufferSource();
+        source.buffer = audioBuffer;
+
+        // 连接到输出
+        source.connect(ctx.destination);
+
+        // 播放
+        source.start();
+      }
+
+      //   playAudio("audio.mp3");
+      //   playAudio("zhiqi.wav");
+    </script>
+  </body>
+</html>

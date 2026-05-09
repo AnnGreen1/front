@@ -1,0 +1,5 @@
+<!--index.wxml-->
+<view class="container">
+fasdfas
+  <ec-canvas style="height:50%;width: 100%;" id="mychart-dom-line" canvas-id="mychart-line" ec="{{ ec }}"></ec-canvas>
+</view>

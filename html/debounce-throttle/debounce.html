@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>防抖 - debounce</title>
+  </head>
+  <body>
+    <input type="text" class="search" />
+
+    <script>
+      const search = document.querySelector(".search");
+
+      function debounce(func, delay) {
+        /**
+         * timer 是防抖的关键，需要在多次 input 事件触发之间共享这一个 timer 变量
+         * 形象比喻： timer 就像是电梯门口的“关门倒计时器”。闭包保证了无论进出多少人（触发多少次事件），大家面对的都是同一个倒计时器。
+         */
+        let timer = null;
+
+        // 闭包 负责保存 timer 状态
+        return function (
+          ...args /**剩余参数 负责收集所有输入，是“调用防抖函数时”调用者传进来的参数。*/
+        ) {
+          // 每次触发都清除之前的定时器(第一次输入时，没有定时器，所以不会清除)
+          if (timer) clearTimeout(timer);
+
+          // 重新设置定时器
+          timer = setTimeout(() => {
+            /**
+             * this 是“调用防抖函数时”的那个上下文对象。this 指向的是触发事件的那个 DOM 元素（即 <input> 标签）
+             */
+            func.apply(this, args); // apply 负责还原 this 和参数，确保函数在正确的环境下运行；Function 实例的 apply() 方法会以给定的 this 值和作为数组（或类数组对象）提供的 arguments 调用该函数。
+          }, delay);
+        };
+      }
+
+      const doSomething = (event) => {
+        console.log("用户输入了:", event.target.value);
+      };
+
+      search.addEventListener("input", debounce(doSomething, 2000));
+    </script>
+  </body>
+</html>
