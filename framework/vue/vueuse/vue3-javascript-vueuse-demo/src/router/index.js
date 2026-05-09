@@ -16,7 +16,11 @@ const router = createRouter({
     },
     {
       path: "/use-user-media/demo",
-      component: () => import("../views/useUserMedia/Demo.vue"),
+      component: () => import("../views/use-user-media/Demo.vue"),
+    },
+     {
+      path: "/use-user-media/share-media",
+      component: () => import("../views/use-user-media/share-media.vue"),
     },
     {
       path: "/use-web-socket",

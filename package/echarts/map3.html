@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/6.0.0/echarts.min.js"
+        integrity="sha512-4/g9GAdOdTpUP2mKClpKsEzaK7FQNgMjq+No0rX8XZlfrCGtbi4r+T/p5fnacsEC3zIAmHKLJUL7sh3/yVA4OQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        html {
+            height: 100vh;
+            width: 100vw;
+        }
+
+        body,
+        #main {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="main"></div>
+
+    <script>
+        // import * as echarts from 'echarts';
+        // 假设引入了 coordtransform 用于坐标转换
+        // import coordtransform from 'coordtransform'; 
+
+        const chart = echarts.init(document.getElementById('main'));
+
+        // 1. 准备数据：这里模拟了各省份的数值
+        // 注意：value 是数值，用于颜色映射和排序
+        const provinceData = [
+            { name: '北京市', value: 2189 }, // 注意：有些GeoJSON用"北京"，有些用"北京市"
+            { name: '天津市', value: 1567 },
+            { name: '上海市', value: 2487 },
+            { name: '重庆市', value: 3075 },
+            { name: '河北省', value: 7556 },
+            { name: '河南省', value: 9605 },
+            { name: '云南省', value: 4800 },
+            { name: '辽宁省', value: 4375 },
+            { name: '黑龙江省', value: 3789 },
+            { name: '湖南省', value: 6890 },
+            { name: '安徽省', value: 6250 },
+            { name: '山东省', value: 10000 },
+            { name: '江苏省', value: 8050 },
+            { name: '浙江省', value: 5750 },
+            { name: '江西省', value: 4500 },
+            { name: '湖北省', value: 5900 },
+            { name: '广西壮族自治区', value: 4900 }, // 注意：必须是全称
+            { name: '甘肃省', value: 2600 },
+            { name: '山西省', value: 3700 },
+            { name: '内蒙古自治区', value: 2500 },   // 注意：必须是全称
+            { name: '陕西省', value: 3800 },
+            { name: '吉林省', value: 2700 },
+            { name: '福建省', value: 3900 },
+            { name: '贵州省', value: 3500 },
+            { name: '广东省', value: 11000 },
+            { name: '青海省', value: 600 },
+            { name: '西藏自治区', value: 340 },      // 注意：必须是全称
+            { name: '四川省', value: 8300 },
+            { name: '宁夏回族自治区', value: 680 },  // 注意：必须是全称
+            { name: '海南省', value: 900 },
+            { name: '台湾省', value: 2300 },         // 视数据源而定，有时仅为"台湾"
+            { name: '香港特别行政区', value: 740 },  // 注意：必须是全称
+            { name: '澳门特别行政区', value: 60 },   // 注意：必须是全称
+            { name: '新疆维吾尔自治区', value: 2400 } // 注意：必须是全称
+        ];
+
+        // 2. 之前的散点数据（保持不变，用于展示具体的点）
+        const scatterData = [
+            { name: '南京市', value: [118.7969, 32.0603, 100] },
+            { name: '苏州市', value: [120.5853, 31.2989, 80] }
+        ];
+
+        const option = {
+            title: {
+                text: '全国省份数据分布示例',
+                left: 'center'
+            },
+            // --- 关键修改点 1：视觉映射组件 ---
+            // 它会自动读取 series 中数据的 value 值，并映射为颜色
+            visualMap: {
+                min: 0,
+                max: 12000, // 根据数据的最大值设定
+                left: 'left',
+                top: 'bottom',
+                text: ['高', '低'], // 文本，默认为 'High', 'Low'
+                calculable: true,   // 是否显示拖拽手柄
+                inRange: {
+                    // 颜色范围：从浅蓝到深蓝
+                    color: ['#e0f3f8', '#4575b4']
+                },
+                textStyle: {
+                    color: '#333'
+                }
+            },
+
+            tooltip: {
+                trigger: 'item',
+                // --- 关键修改点 2：自定义提示框 ---
+                // {b} 或 params.name 代表地名
+                // {c} 或 params.value 代表数值
+                formatter: function (params) {
+                    // 判断是地图区域还是散点
+                    if (params.seriesType === 'map') {
+                        // 如果该省份没有数据（value 为 undefined），显示“无数据”
+                        const val = params.value ?? '无数据';
+                        return `${params.name}<br/>数值：${val}`;
+                    } else {
+                        // 散点的提示
+                        return `${params.name}<br/>坐标数值：${params.value[2]}`;
+                    }
+                }
+            },
+
+            geo: {
+                map: 'china',
+                roam: true,
+                zoom: 1.2,
+                label: {
+                    // --- 关键修改点 3：直接在地图上显示数值 ---
+                    show: true,
+                    color: '#333',
+                    // 格式化标签：{b}是地名，{c}是数值
+                    // 如果数值太大，可以在这里做截断处理，或者直接只显示地名
+                    formatter: function (params) {
+                        // params.name 就是省份的名称
+                        return params.name;
+                    }
+                },
+                itemStyle: {
+                    areaColor: '#f3f3f3',
+                    borderColor: '#999'
+                },
+                emphasis: {
+                    itemStyle: {
+                        areaColor: '#d1e0eb'
+                    },
+                    label: {
+                        show: true // 鼠标悬停时确保显示名称
+                    }
+                }
+            },
+
+            series: [
+                {
+                    name: '省份数值',
+                    type: 'map',
+                    geoIndex: 0,
+                    // --- 关键修改点 4：绑定数据 ---
+                    data: provinceData,
+
+                    // 可以在这里单独设置地图项的样式
+                    itemStyle: {
+                        // 正常状态下的边框阴影
+                        shadowBlur: 10,
+                        shadowColor: 'rgba(0, 0, 0, 0.2)'
+                    },
+                    emphasis: {
+                        label: {
+                            show: true
+                        }
+                    }
+                },
+                {
+                    name: '标记点',
+                    type: 'scatter',
+                    coordinateSystem: 'geo',
+                    data: scatterData,
+                    symbol: 'pin',
+                    symbolSize: 40,
+                    itemStyle: {
+                        color: '#ee6666'
+                    }
+                }
+            ]
+        };
+
+        // 模拟加载地图数据
+        fetch('./rpc-geojson.json').then(res => res.json()).then(geoJson => {
+            echarts.registerMap('china', geoJson);
+            chart.setOption(option);
+        });
+
+        // --- 关键修改点 5：在点击事件中获取数值 ---
+        chart.on('click', function (params) {
+            // 只有点击地图区域（而不是散点）时才触发
+            if (params.componentType === 'series' && params.seriesType === 'map') {
+                const name = params.name;
+                const value = params.value; // 这里就是你定义的数值！
+
+                console.log(`点击了：${name}`);
+                console.log(`该省份的数值是：${value}`);
+
+                // 可以在这里做路由跳转或弹窗
+                // alert(`${name} 的数据是 ${value}`);
+            }
+        });
+    </script>
+</body>
+
+</html>
