@@ -26,6 +26,7 @@ import router from "./router/index.jsx";
 import { RouterProvider, Link } from "react-router-dom";
 import CSS from "./style/css.jsx";
 import Sass from "./style/sass.jsx";
+import Counter from "./counter.jsx";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -81,7 +82,9 @@ function App() {
       <Ref />
       <CSS />
       <Sass /> */}
-      <RouterProvider router={router} />
+      {/* <RouterProvider router={router} /> */}
+
+      <Counter />
     </>
   );
 }

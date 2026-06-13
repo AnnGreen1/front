@@ -4,7 +4,29 @@
     </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
-const Essentials = ref('Essentials.vue')
+<script>
+export default {
+    name: 'Essentials',
+    data() {
+        return {
+            Essentials: 'Essentials'
+        }
+    },
+    setup() {
+        console.log('Essentials setup')
+        return {}
+    },
+    beforeCreate() {
+        console.log('Essentials beforeCreate')
+    },
+    created() {
+        console.log('Essentials created')
+    },
+    beforeMount() {
+        console.log('Essentials beforeMount')
+    },
+    mounted() {
+        console.log('Essentials mounted')
+    },
+}
 </script>

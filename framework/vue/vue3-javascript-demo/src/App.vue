@@ -1,9 +1,18 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { RouterLink, RouterView } from "vue-router";
+import HelloWorld from "./components/HelloWorld.vue";
+
+import { useMyLogic } from "./composables/use-my-logic.js";
+
+const { publicState, increment } = useMyLogic(1);
+console.log(publicState.value);
 </script>
 
 <template>
+  <div> 
+    <div>publicState:{{ publicState }}</div>
+    <button @click="increment">Increment</button>
+  </div>
   <!-- <header>
     <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
 

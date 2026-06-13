@@ -11,19 +11,23 @@
 export default {
   data() {
     return {
-      nums: []
-    }
+      nums: [],
+    };
   },
   methods: {
     pushNum() {
-      this.nums.push(Math.floor(Math.random() * 100))
+      this.nums.push(Math.floor(Math.random() * 100));
     },
     popNum() {
-      this.nums.pop()
+      this.nums.pop();
     },
     update() {
-      this.nums[0] = Math.floor(Math.random() * 100)
-    }
-  }
-}
+      this.nums[0] = Math.floor(Math.random() * 100);
+    },
+  },
+  mounted() {
+    localStorage.setItem("test", "123");
+    sessionStorage.setItem("guy", "456");
+  },
+};
 </script>

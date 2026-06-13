@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <!-- 修改: 添加明确的宽度和高度，以便画布可见 -->
+    <div id="d1" style="margin: 100px; border: 1px solid red; width: 800px; height: 600px;"></div>
+
+    <!-- 修改: 更新 CDN 链接到 PixiJS v8 最新稳定版 -->
+    <script src="https://pixijs.download/release/pixi.js"></script>
+    <script>
+      // 修改: 使用 PixiJS v8+ 推荐的异步初始化方法
+      (async () => {
+        const app = await PIXI.Application.init({
+          width: 800,
+          height: 600,
+          backgroundColor: 0xffffff
+        });
+
+        // 找到id为d1的元素
+        let d1 = document.getElementById("d1");
+        // 将画布添加到d1元素里
+        d1.appendChild(app.canvas);
+        
+        // 可选: 添加一个测试图形以验证画布是否正常工作
+        const graphics = new PIXI.Graphics();
+        graphics.beginFill(0xFF0000);
+        graphics.drawRect(50, 50, 100, 100);
+        graphics.endFill();
+        app.stage.addChild(graphics);
+      })();
+    </script>
+  </body>
+</html>

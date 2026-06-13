@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta charset="UTF-8">
+  <title>FullCalendar Demo</title>
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      padding: 40px;
+      background: #f5f5f5;
+    }
+
+    #calendar {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="calendar"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const calendarEl = document.getElementById('calendar');
+
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',  // 初始视图：月视图
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        locale: 'zh-cn',              // 中文
+        events: [                      // 静态事件数据
+          { title: '团队周会', start: '2026-06-10T10:00:00', end: '2025-06-10T11:30:00' },
+          { title: '产品评审', start: '2026-06-12', color: '#e74c3c' },
+          { title: '版本发布', start: '2026-06-18T14:00:00', color: '#27ae60' }
+        ],
+        editable: true,                     // 事件可拖拽 & 调整大小
+        // ========== 日期点击 ==========
+        dateClick: function (info) {
+          console.log('点击了日期:', info.dateStr);       // "2025-06-13"
+          console.log('全天点击:', info.allDay);
+
+          // 弹出输入框创建事件
+          const title = prompt('请输入事件标题:');
+          if (title) {
+            calendar.addEvent({
+              title: title,
+              start: info.dateStr,
+              allDay: info.allDay
+            });
+          }
+        },
+
+        // ========== 日期范围选择 ==========
+        select: function (info) {
+          console.log('选择范围:', info.startStr, '->', info.endStr);
+          const title = prompt('请输入事件标题:');
+          if (title) {
+            calendar.addEvent({
+              title: title,
+              start: info.startStr,
+              end: info.endStr,
+              allDay: info.allDay
+            });
+          }
+          calendar.unselect();  // 取消选中状态
+        },
+
+        // ========== 事件点击 ==========
+        eventClick: function (info) {
+          console.log('点击事件:', info.event.title);
+          console.log('事件ID:', info.event.id);
+          console.log('自定义属性:', info.event.extendedProps);
+
+          // 阻止默认跳转（如果有 url）
+          info.jsEvent.preventDefault();
+
+          // 可以打开弹窗编辑
+          if (confirm(`确定删除「${info.event.title}」吗？`)) {
+            info.event.remove();
+          }
+        },
+
+        // ========== 事件拖拽完成 ==========
+        eventDrop: function (info) {
+          console.log('拖拽后:', info.event.title, info.event.startStr);
+          // 同步到后端
+          // fetch('/api/update-event', { method: 'POST', body: JSON.stringify({ id: info.event.id, start: info.event.start }) });
+          if (!confirm('确认修改此事件时间？')) {
+            info.revert();  // 撤销拖拽
+          }
+        },
+
+        // ========== 事件调整大小 ==========
+        eventResize: function (info) {
+          console.log('调整后:', info.event.title, info.event.startStr, info.event.endStr);
+          // fetch('/api/update-event', ...);
+          if (!confirm('确认修改时长？')) {
+            info.revert();
+          }
+        },
+
+        // ========== 视图切换 / 日期跳转 ==========
+        viewDidMount: function (info) {
+          console.log('视图切换:', info.view.type);
+        },
+        datesSet: function (info) {
+          console.log('当前可见范围:', info.startStr, '->', info.endStr);
+          console.log('当前视图:', info.view.type);
+        }
+      });
+
+      calendar.render();
+    });
+  </script>
+</body>
+
+</html>

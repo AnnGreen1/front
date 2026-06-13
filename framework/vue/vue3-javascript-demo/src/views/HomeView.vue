@@ -10,6 +10,11 @@
     <div class="box"></div>
 
     <div class="box2"></div>
+
+    <div>
+      <div>{{ publicState }}</div>
+      <button @click="increment">Increment</button>
+    </div>
   </div>
 </template>
 
@@ -28,6 +33,11 @@ const fullName = computed(() => {
 const updateName = () => {
   firstName.value = "李";
 };
+
+import { useMyLogic } from "../composables/use-my-logic.js";
+
+const { publicState, increment } = useMyLogic(1);
+console.log(publicState.value);
 </script>
 
 <style scoped lang="scss">
