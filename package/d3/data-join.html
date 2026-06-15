@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>D3 第一个例子</title>
+    <style>
+
+    </style>
+</head>
+
+<body>
+    <div id="list"></div>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        const fruits = ['苹果', '香蕉', '橘子', '葡萄'];
+
+        d3.select('#list')
+            .selectAll('li')         // 选中所有 li（页面上可能有，可能没有）
+            .data(fruits)            // 把数据绑定上去
+            .join('li')              // 为每个数据项匹配一个元素
+            .text(d => d);           // d 就是当前绑定的数据项
+    </script>
+</body>
+
+</html>

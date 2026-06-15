@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>D3 第一个例子</title>
+  <style>
+    .bar {
+      background: #4e79a7;
+      margin: 2px 0;
+      color: white;
+      padding: 4px 8px;
+      font: 14px sans-serif;
+      transition: background 0.2s;
+    }
+    .bar:hover {
+      background: #e15759;
+    }
+  </style>
+</head>
+<body>
+  <div id="chart"></div>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script>
+    // 数据
+    const data = [30, 80, 45, 60, 20, 90, 55];
+
+    // D3 的核心：选择 → 绑定数据 → 设置属性
+    d3.select('#chart')              // 1. 选中容器
+      .selectAll('div')              // 2. 选中所有 div（此时还没有，是空的）
+      .data(data)                    // 3. 把数据绑定上去
+      .join('div')                   // 4. 为每个数据项创建一个 div
+      .attr('class', 'bar')          // 5. 设置 class
+      .style('width', d => d * 5 + 'px')  // 6. 用数据控制宽度
+      .text(d => d);                 // 7. 显示数值
+  </script>
+</body>
+</html>

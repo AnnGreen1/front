@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>D3 第一个例子</title>
+    <style>
+
+    </style>
+</head>
+
+<body>
+    <div id="chart"></div>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        // 数据
+        const data = [30, 80, 45, 60, 20, 90, 55];
+
+        // D3 的核心：选择 → 绑定数据 → 设置属性
+        const svg = d3.select('#chart').append('svg').attr('width', 600).attr('height', 400)
+
+        svg.append('rect')
+            .attr('x', 10).attr('y', 10)
+            .attr('width', 100).attr('height', 50)
+            .attr('fill', '#4e79a7');
+
+
+        svg.append('circle')
+            .attr('cx', 200).attr('cy', 100)
+            .attr('r', 30)
+            .attr('fill', '#e15759');
+
+        // D3 的生成器输出的就是 SVG path 的 d 属性字符串
+        const line = d3.line()
+            .x(d => d[0])
+            .y(d => d[1]);
+
+        svg.append('path')
+            .attr('d', line([[10, 80], [100, 40], [200, 120], [300, 60]]))
+            .attr('fill', 'none')
+            .attr('stroke', '#333');
+
+    </script>
+</body>
+
+</html>

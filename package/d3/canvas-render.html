@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>D3 第一个例子</title>
+    <style>
+
+    </style>
+</head>
+
+<body>
+    <div id="chart"></div>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        // 创建一个 Canvas 元素，并设置宽高
+        const canvas = d3.select('#chart')
+            .append('canvas')
+            .attr('width', 600)
+            .attr('height', 400);
+
+        // 获取 Canvas 2D 绘图上下文
+        const ctx = canvas.node().getContext('2d');
+
+        // 数据数组，每个对象表示一个圆，包含 x/y 坐标、半径 r 和填充颜色
+        const data = [
+            { x: 50, y: 200, r: 20, color: '#e74c3c' },
+            { x: 150, y: 120, r: 35, color: '#3498db' },
+            { x: 280, y: 280, r: 28, color: '#2ecc71' },
+            { x: 400, y: 160, r: 42, color: '#9b59b6' }
+        ];
+
+        // 用 D3 的比例尺做坐标映射，方便后续修改域和值域
+        const xScale = d3.scaleLinear().domain([0, 500]).range([0, 600]);
+        const yScale = d3.scaleLinear().domain([0, 400]).range([0, 400]);
+
+        // 逐个遍历数据，用 Canvas API 绘制圆形
+        data.forEach(d => {
+            ctx.beginPath();
+            ctx.arc(xScale(d.x), yScale(d.y), d.r, 0, Math.PI * 2);
+            ctx.fillStyle = d.color; // 填充颜色
+            ctx.fill();
+            ctx.strokeStyle = '#fff'; // 圆边白色描边
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        });
+
+
+    </script>
+</body>
+
+</html>

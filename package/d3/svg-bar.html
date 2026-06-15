@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>D3 SVG 柱状图</title>
+  <style>
+    body { font-family: sans-serif; padding: 40px; }
+    .bar { fill: #4e79a7; }
+    .bar:hover { fill: #e15759; }
+    .axis text { font-size: 12px; fill: #666; }
+    .axis path, .axis line { stroke: #ccc; }
+  </style>
+</head>
+<body>
+  <div id="chart"></div>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script>
+    // ============ 数据 ============
+    const data = [
+      { name: '苹果',  value: 120 },
+      { name: '香蕉',  value: 95 },
+      { name: '橘子',  value: 78 },
+      { name: '葡萄',  value: 150 },
+      { name: '西瓜',  value: 200 },
+      { name: '草莓',  value: 165 }
+    ];
+
+    // ============ 尺寸 ============
+    const width = 600;
+    const height = 400;
+    const margin = { top: 30, right: 30, bottom: 50, left: 60 };
+    const innerW = width - margin.left - margin.right;
+    const innerH = height - margin.top - margin.bottom;
+
+    // ============ 创建 SVG ============
+    const svg = d3.select('#chart')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height);
+
+    // 创建一个 group 做整体偏移（留出 margin）
+    const g = svg.append('g')
+      .attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+    // ============ 比例尺 ============
+    // x 轴：序数比例尺（类别）
+    const x = d3.scaleBand()
+      .domain(data.map(d => d.name))    // ['苹果', '香蕉', ...]
+      .range([0, innerW])
+      .padding(0.2);                     // 柱子间距
+
+    // y 轴：线性比例尺
+    const y = d3.scaleLinear()
+      .domain([0, d3.max(data, d => d.value)])
+      .range([innerH, 0]);              // 注意：SVG 的 y 轴向下，所以是 [高, 0]
+
+    // 颜色
+    const color = d3.scaleOrdinal()
+      .domain(data.map(d => d.name))
+      .range(d3.schemeTableau10);        // D3 内置的 10 色配色方案
+
+    // ============ 画柱子 ============
+    g.selectAll('rect')
+      .data(data)
+      .join('rect')
+      .attr('class', 'bar')
+      .attr('x', d => x(d.name))
+      .attr('y', d => y(d.value))
+      .attr('width', x.bandwidth())
+      .attr('height', d => innerH - y(d.value))
+      .attr('fill', d => color(d.name))
+      .attr('rx', 4);                    // 圆角
+
+    // ============ 添加数值标签 ============
+    g.selectAll('.label')
+      .data(data)
+      .join('text')
+      .attr('class', 'label')
+      .attr('x', d => x(d.name) + x.bandwidth() / 2)
+      .attr('y', d => y(d.value) - 6)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '12px')
+      .attr('fill', '#333')
+      .text(d => d.value);
+
+    // ============ 坐标轴 ============
+    // x 轴
+    g.append('g')
+      .attr('class', 'axis')
+      .attr('transform', `translate(0, ${innerH})`)
+      .call(d3.axisBottom(x));
+
+    // y 轴
+    g.append('g')
+      .attr('class', 'axis')
+      .call(d3.axisLeft(y).ticks(6));
+
+    // y 轴网格线
+    g.append('g')
+      .attr('class', 'grid')
+      .call(
+        d3.axisLeft(y)
+          .ticks(6)
+          .tickSize(-innerW)
+          .tickFormat('')
+      )
+      .selectAll('line')
+      .attr('stroke', '#eee')
+      .attr('stroke-dasharray', '3,3');
+
+    // 删除网格线的轴线
+    g.select('.grid .domain').remove();
+  </script>
+</body>
+</html>

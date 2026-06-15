@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaflet 进阶实战</title>
+
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- MarkerCluster -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <!-- Heatmap -->
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #080e1e;
+            --surface: #0f1629;
+            --surface-2: #151d35;
+            --surface-3: #1a2340;
+            --accent: #22d3ee;
+            --accent-warm: #f59e0b;
+            --accent-green: #34d399;
+            --accent-pink: #f472b6;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: rgba(255, 255, 255, 0.06);
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ── Layout ── */
+        .app {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 330px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.08em;
+            color: var(--accent);
+            background: rgba(34, 211, 238, 0.07);
+            border: 1px solid rgba(34, 211, 238, 0.15);
+            padding: 3px 10px;
+            border-radius: 100px;
+            margin-bottom: 10px;
+        }
+
+        .badge .live {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .3
+            }
+        }
+
+        .sidebar-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            background: linear-gradient(135deg, #e2e8f0, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Tab nav */
+        .tab-nav {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 11px 0;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-family: 'Noto Sans SC', sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+            position: relative;
+            transition: color .25s;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-secondary);
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 25%;
+            width: 50%;
+            height: 2px;
+            background: var(--accent);
+            border-radius: 2px 2px 0 0;
+        }
+
+        /* Tab panels */
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .tab-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .tab-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .tab-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, .06);
+            border-radius: 4px;
+        }
+
+        .panel {
+            display: none;
+            padding: 20px;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        /* Section title */
+        .section-title {
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 3px;
+            height: 12px;
+            border-radius: 2px;
+            background: var(--accent);
+        }
+
+        /* Toggle switches */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .toggle-row:last-child {
+            border-bottom: none;
+        }
+
+        .toggle-label {
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-label .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        .switch {
+            position: relative;
+            width: 38px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch .slider {
+            position: absolute;
+            inset: 0;
+            background: var(--surface-3);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background .3s;
+        }
+
+        .switch .slider::before {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            left: 3px;
+            top: 3px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            transition: all .3s;
+        }
+
+        .switch input:checked+.slider {
+            background: rgba(34, 211, 238, .18);
+        }
+
+        .switch input:checked+.slider::before {
+            transform: translateX(18px);
+            background: var(--accent);
+        }
+
+        /* Radio */
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .radio-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: var(--surface-2);
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all .2s;
+        }
+
+        .radio-row:hover {
+            border-color: var(--border);
+        }
+
+        .radio-row input {
+            display: none;
+        }
+
+        .radio-dot {
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            border: 2px solid var(--text-muted);
+            flex-shrink: 0;
+            transition: all .2s;
+        }
+
+        .radio-row input:checked~.radio-dot {
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 8px rgba(34, 211, 238, .35);
+        }
+
+        .radio-text {
+            font-size: 13px;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 16px 0;
+        }
+
+        /* Tool buttons */
+        .tool-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            margin-bottom: 14px;
+        }
+
+        .tool-btn {
+            width: 100%;
+            padding: 9px 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Noto Sans SC', sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all .2s;
+            text-align: left;
+        }
+
+        .tool-btn:hover {
+            background: rgba(34, 211, 238, .06);
+            border-color: rgba(34, 211, 238, .15);
+        }
+
+        .tool-btn.active-mode {
+            background: rgba(34, 211, 238, .1);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .measure-result {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--accent-green);
+            padding: 10px;
+            background: rgba(52, 211, 153, .05);
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        .info-grid {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 2;
+        }
+
+        .info-grid .val {
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Pitfall cards */
+        .pitfall-card {
+            margin-bottom: 6px;
+            background: var(--surface-2);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .pitfall-card summary {
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color .2s;
+        }
+
+        .pitfall-card summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .pitfall-card summary::before {
+            content: '▸';
+            font-size: 11px;
+            color: var(--accent);
+            transition: transform .2s;
+        }
+
+        .pitfall-card[open] summary::before {
+            transform: rotate(90deg);
+        }
+
+        .pitfall-card[open] summary {
+            color: var(--accent);
+        }
+
+        .pitfall-body {
+            padding: 0 14px 14px;
+            font-size: 12px;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+
+        .pitfall-body code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            background: rgba(34, 211, 238, .08);
+            color: var(--accent);
+            padding: 1px 5px;
+            border-radius: 3px;
+        }
+
+        .pitfall-body pre {
+            margin-top: 8px;
+            padding: 10px;
+            background: #0b1120;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #94a3b8;
+        }
+
+        .pitfall-body pre .hl {
+            color: var(--accent);
+        }
+
+        .pitfall-body pre .cm {
+            color: #475569;
+        }
+
+        /* Map wrapper */
+        .map-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ── Leaflet overrides ── */
+        .leaflet-popup-content-wrapper {
+            background: rgba(15, 22, 41, .95) !important;
+            backdrop-filter: blur(16px) !important;
+            border: 1px solid rgba(34, 211, 238, .2) !important;
+            border-radius: 10px !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .5) !important;
+            color: var(--text-primary) !important;
+        }
+
+        .leaflet-popup-tip {
+            background: rgba(15, 22, 41, .95) !important;
+        }
+
+        .leaflet-popup-content {
+            margin: 12px 16px !important;
+            font-size: 13px !important;
+            line-height: 1.6 !important;
+        }
+
+        .leaflet-popup-close-button {
+            color: var(--text-muted) !important;
+        }
+
+        .leaflet-control-zoom a {
+            background: var(--surface) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border) !important;
+        }
+
+        .leaflet-control-zoom a:hover {
+            background: var(--surface-2) !important;
+        }
+
+        .leaflet-control-attribution {
+            background: rgba(8, 14, 30, .8) !important;
+            color: var(--text-muted) !important;
+            font-size: 10px !important;
+        }
+
+        .leaflet-control-attribution a {
+            color: var(--text-secondary) !important;
+        }
+
+        /* Custom coords control */
+        .coords-display {
+            background: rgba(15, 22, 41, .85) !important;
+            backdrop-filter: blur(8px);
+            padding: 5px 10px !important;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-secondary) !important;
+            border: 1px solid var(--border);
+        }
+
+        /* Pulse marker */
+        .pulse-marker {
+            background: none !important;
+            border: none !important;
+        }
+
+        .pulse-inner {
+            position: relative;
+            width: 16px;
+            height: 16px;
+        }
+
+        .pulse-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            z-index: 2;
+            box-shadow: 0 0 6px var(--accent);
+        }
+
+        .pulse-ring {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            animation: pulseExpand 2s ease-out infinite;
+        }
+
+        @keyframes pulseExpand {
+            0% {
+                transform: scale(1);
+                opacity: .7;
+            }
+
+            100% {
+                transform: scale(3.5);
+                opacity: 0;
+            }
+        }
+
+        /* Vehicle marker */
+        .vehicle-marker {
+            background: none !important;
+            border: none !important;
+        }
+
+        .vehicle-icon {
+            width: 26px;
+            height: 26px;
+            background: var(--accent-warm);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 14px rgba(245, 158, 11, .45);
+        }
+
+        .vehicle-icon svg {
+            width: 14px;
+            height: 14px;
+            fill: #000;
+        }
+
+        /* Custom cluster */
+        .custom-cluster-icon {
+            background: none !important;
+            border: none !important;
+        }
+
+        .cluster-inner {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, .15);
+        }
+
+        .cluster-inner.sz-s {
+            background: rgba(34, 211, 238, .55);
+        }
+
+        .cluster-inner.sz-m {
+            background: rgba(245, 158, 11, .55);
+        }
+
+        .cluster-inner.sz-l {
+            background: rgba(244, 114, 182, .55);
+        }
+
+        /* Responsive */
+        @media(max-width:800px) {
+            .app {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                max-height: 45vh;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .map-wrapper {
+                flex: 1;
+                min-height: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+        <!-- ════ SIDEBAR ════ -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="badge"><span class="live"></span> INTERACTIVE DEMO</div>
+                <h1>Leaflet 进阶实战</h1>
+                <p>真实项目中的进阶模式与踩坑经验</p>
+            </div>
+
+            <nav class="tab-nav">
+                <button class="tab-btn active" data-tab="layers">图层</button>
+                <button class="tab-btn" data-tab="tools">工具</button>
+                <button class="tab-btn" data-tab="notes">踩坑</button>
+            </nav>
+
+            <div class="tab-content">
+
+                <!-- ── Panel: 图层 ── -->
+                <div class="panel active" id="panel-layers">
+                    <div class="section-title">数据图层</div>
+                    <div class="toggle-row">
+                        <span class="toggle-label"><span class="dot" style="background:#f472b6"></span>热力图</span>
+                        <label class="switch"><input type="checkbox" id="tog-heat"><span class="slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label"><span class="dot" style="background:var(--accent)"></span>点聚合</span>
+                        <label class="switch"><input type="checkbox" id="tog-cluster"><span
+                                class="slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label"><span class="dot" style="background:var(--accent-green)"></span>区域数据
+                            (GeoJSON)</span>
+                        <label class="switch"><input type="checkbox" id="tog-geo"><span class="slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label"><span class="dot"
+                                style="background:var(--accent-warm)"></span>轨迹动画</span>
+                        <label class="switch"><input type="checkbox" id="tog-vehicle"><span
+                                class="slider"></span></label>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="section-title">底图选择</div>
+                    <div class="radio-group">
+                        <label class="radio-row"><input type="radio" name="base" value="dark" checked><span
+                                class="radio-dot"></span><span class="radio-text">CartoDB Dark</span></label>
+                        <label class="radio-row"><input type="radio" name="base" value="osm"><span
+                                class="radio-dot"></span><span class="radio-text">OpenStreetMap</span></label>
+                        <label class="radio-row"><input type="radio" name="base" value="light"><span
+                                class="radio-dot"></span><span class="radio-text">CartoDB Light</span></label>
+                    </div>
+                </div>
+
+                <!-- ── Panel: 工具 ── -->
+                <div class="panel" id="panel-tools">
+                    <div class="section-title">量测工具</div>
+                    <div class="tool-group">
+                        <button class="tool-btn" id="btn-measure">📏 开始量测距离</button>
+                        <button class="tool-btn" id="btn-clear-measure">🗑️ 清除量测</button>
+                        <div class="measure-result" id="measure-result">点击地图添加量测点</div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="section-title">视角跳转</div>
+                    <div class="tool-group">
+                        <button class="tool-btn" id="fly-bj">📍 飞到北京</button>
+                        <button class="tool-btn" id="fly-sh">📍 飞到上海</button>
+                        <button class="tool-btn" id="fly-cd">📍 飞到成都</button>
+                        <button class="tool-btn" id="fly-reset">🌏 复位全览</button>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="section-title">地图状态</div>
+                    <div class="info-grid">
+                        <div>缩放级别: <span class="val" id="info-zoom">5</span></div>
+                        <div>中心坐标: <span class="val" id="info-center">--</span></div>
+                        <div>可见标记: <span class="val" id="info-markers">8</span></div>
+                    </div>
+                </div>
+
+                <!-- ── Panel: 踩坑 ── -->
+                <div class="panel" id="panel-notes">
+
+                    <details class="pitfall-card" open>
+                        <summary>GCJ-02 坐标偏移</summary>
+                        <div class="pitfall-body">
+                            <p>中国法律要求地图坐标经 <code>GCJ-02</code> 加密，而 Leaflet 用 <code>WGS-84</code>。直接用高德/腾讯瓦片会导致标记偏移
+                                100~700m。</p>
+                            <pre><span class="cm">// 用开源库纠偏</span>
+<span class="hl">import { gcj02ToWgs84 } from 'coordtransform'</span>
+const [lng, lat] = gcj02ToWgs84(gcjLng, gcjLat)
+L.marker([lat, lng]).addTo(map)</pre>
+                            <p style="margin-top:6px">或使用 <code>leaflet-chinesetms</code> 插件自动处理。</p>
+                        </div>
+                    </details>
+
+                    <details class="pitfall-card">
+                        <summary>Canvas vs SVG 渲染器</summary>
+                        <div class="pitfall-body">
+                            <p>默认 SVG 每个矢量 = 一个 DOM 节点，1000+ 标记严重卡顿。Canvas 渲染器适合大数据量：</p>
+                            <pre><span class="cm">// 全局 Canvas</span>
+const map = L.map('map', { <span class="hl">preferCanvas: true</span> })
+
+<span class="cm">// 或仅特定图层</span>
+L.circleMarker(latlng, { <span class="hl">renderer: L.canvas()</span> })</pre>
+                            <p style="margin-top:6px">代价：失去 CSS 样式和 hover 事件，需用 <code>pmousedown</code> 等替代。</p>
+                        </div>
+                    </details>
+
+                    <details class="pitfall-card">
+                        <summary>invalidateSize 陷阱</summary>
+                        <div class="pitfall-body">
+                            <p>容器大小变化后地图不自动重算，出现灰色区域或瓦片错位。这是新手最常见的 bug：</p>
+                            <pre><span class="cm">// 侧栏收起/展开后</span>
+<span class="hl">map.invalidateSize()</span>
+
+<span class="cm">// 有 CSS 动画时</span>
+sidebar.addEventListener(<span class="hl">'transitionend'</span>, () => {
+  map.invalidateSize({ animate: true })
+})
+
+<span class="cm">// React 中</span>
+useEffect(() => {
+  setTimeout(() => map.invalidateSize(), 100)
+}, [sidebarOpen])</pre>
+                        </div>
+                    </details>
+
+                    <details class="pitfall-card">
+                        <summary>内存泄漏与正确销毁</summary>
+                        <div class="pitfall-body">
+                            <p>SPA 切路由只移除 DOM 不销毁地图 → 事件监听器 + 定时器泄漏 → 内存持续增长。</p>
+                            <pre><span class="cm">// 正确顺序</span>
+map.eachLayer(l => map.removeLayer(l))
+<span class="hl">map.remove()</span>
+
+<span class="cm">// React useEffect</span>
+useEffect(() => {
+  const map = L.map(ref.current)
+  return () => <span class="hl">map.remove()</span>  // 清理函数
+}, [])</pre>
+                        </div>
+                    </details>
+
+                    <details class="pitfall-card">
+                        <summary>Pane 与图层遮挡</summary>
+                        <div class="pitfall-body">
+                            <p>Leaflet 有 6 个内置 Pane，z-index 各不同。自定义 Pane 解决遮挡问题：</p>
+                            <pre><span class="cm">// 让 GeoJSON 在标记之上、弹窗之下</span>
+map.createPane(<span class="hl">'geoPane'</span>)
+map.getPane(<span class="hl">'geoPane'</span>).style.zIndex = <span class="hl">450</span>
+<span class="cm">// markerPane=600, popupPane=700</span>
+
+L.geoJSON(data, { pane: <span class="hl">'geoPane'</span> })</pre>
+                        </div>
+                    </details>
+
+                    <details class="pitfall-card">
+                        <summary>Popup 异步内容</summary>
+                        <div class="pitfall-body">
+                            <p>Popup 默认 300px 宽，异步内容需手动更新：</p>
+                            <pre><span class="cm">// 设置宽度</span>
+marker.bindPopup(html, { <span class="hl">maxWidth: 400</span> })
+
+<span class="cm">// 点击后异步加载</span>
+marker.on(<span class="hl">'popupopen'</span>, async () => {
+  const res = await fetch('/api/info')
+  marker.getPopup().setContent(render(res))
+})</pre>
+                        </div>
+                    </details>
+
+                </div>
+            </div>
+        </aside>
+
+        <!-- ════ MAP ════ -->
+        <main class="map-wrapper">
+            <div id="map"></div>
+        </main>
+    </div>
+
+    <script>
+        // ══════════════════════════════════════════════
+        //  1. 地图初始化
+        // ══════════════════════════════════════════════
+        const map = L.map('map', { zoomControl: true }).setView([35.86, 104.19], 5)
+
+        // ══════════════════════════════════════════════
+        //  2. 底图图层（3 种切换）
+        // ══════════════════════════════════════════════
+        // baseLayers 中保存了多个底图图层对象，后续通过 radio 按钮切换使用
+        const baseLayers = {
+            dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OSM &copy; CARTO', subdomains: 'abcd', maxZoom: 19
+            }),
+            osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap', maxZoom: 19
+            }),
+            light: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OSM &copy; CARTO', subdomains: 'abcd', maxZoom: 19
+            })
+        }
+        baseLayers.dark.addTo(map)
+
+        // ══════════════════════════════════════════════
+        //  3. 自定义 DivIcon —— 脉冲标记
+        // ══════════════════════════════════════════════
+        const pulseIcon = L.divIcon({
+            className: 'pulse-marker',
+            html: '<div class="pulse-inner"><div class="pulse-dot"></div><div class="pulse-ring"></div></div>',
+            iconSize: [16, 16], iconAnchor: [8, 8]
+        })
+
+        const cities = [
+            { lat: 39.90, lng: 116.40, name: '北京', desc: '政治文化中心' },
+            { lat: 31.23, lng: 121.47, name: '上海', desc: '国际金融中心' },
+            { lat: 23.13, lng: 113.26, name: '广州', desc: '千年商都' },
+            { lat: 22.54, lng: 114.06, name: '深圳', desc: '科技创新之都' },
+            { lat: 30.57, lng: 104.07, name: '成都', desc: '天府之国' },
+            { lat: 34.26, lng: 108.95, name: '西安', desc: '十三朝古都' },
+            { lat: 29.56, lng: 106.55, name: '重庆', desc: '山城雾都' },
+            { lat: 36.06, lng: 120.38, name: '青岛', desc: '帆船之都' }
+        ]
+
+        // 为每个城市创建一个自定义脉冲标记，并绑定弹窗显示城市信息
+        cities.forEach(c => {
+            L.marker([c.lat, c.lng], { icon: pulseIcon })
+                .addTo(map)
+                .bindPopup(
+                    `<div style="font-weight:600;color:#22d3ee;margin-bottom:3px">${c.name}</div>
+       <div style="color:#94a3b8;font-size:12px">${c.desc}</div>`
+                )
+        })
+
+        // ══════════════════════════════════════════════
+        //  4. GeoJSON 区域 —— hover 高亮 + choropleth
+        //    关键：GeoJSON 用 [lng, lat]，Leaflet 用 [lat, lng]
+        // ══════════════════════════════════════════════
+        const geoData = {
+            type: "FeatureCollection",
+            features: [
+                {
+                    type: "Feature", properties: { name: "华北区域", value: 92, desc: "京津冀晋蒙" },
+                    geometry: { type: "Polygon", coordinates: [[[110, 37], [120, 37], [122, 42], [117, 43], [110, 42], [110, 37]]] }
+                },
+                {
+                    type: "Feature", properties: { name: "华东区域", value: 88, desc: "沪苏浙皖闽赣鲁" },
+                    geometry: { type: "Polygon", coordinates: [[[115, 27], [122, 27], [123, 33], [121, 36], [117, 37], [115, 33], [115, 27]]] }
+                },
+                {
+                    type: "Feature", properties: { name: "华南区域", value: 78, desc: "粤桂琼" },
+                    geometry: { type: "Polygon", coordinates: [[[107, 18], [117, 18], [118, 23], [117, 26], [110, 27], [107, 23], [107, 18]]] }
+                },
+                {
+                    type: "Feature", properties: { name: "西南区域", value: 65, desc: "川渝云贵藏" },
+                    geometry: { type: "Polygon", coordinates: [[[97, 22], [110, 22], [110, 30], [108, 33], [100, 34], [97, 29], [97, 22]]] }
+                },
+                {
+                    type: "Feature", properties: { name: "西北区域", value: 45, desc: "陕甘宁青新" },
+                    geometry: { type: "Polygon", coordinates: [[[75, 35], [110, 35], [112, 40], [110, 43], [80, 45], [75, 40], [75, 35]]] }
+                },
+                {
+                    type: "Feature", properties: { name: "东北区域", value: 58, desc: "辽吉黑" },
+                    geometry: { type: "Polygon", coordinates: [[[119, 40], [135, 40], [135, 48], [128, 53], [120, 48], [119, 43], [119, 40]]] }
+                }
+            ]
+        }
+
+        // 根据数值返回不同颜色，构成 choropleth（分级填色）效果
+        function regionColor(v) {
+            return v > 85 ? '#065f46' : v > 70 ? '#047857' : v > 55 ? '#059669' : v > 40 ? '#34d399' : '#6ee7b7'
+        }
+
+        // geojsonLayer 用于渲染区域矢量数据，支持样式、鼠标交互和点击缩放
+        const geojsonLayer = L.geoJSON(geoData, {
+            style: f => ({
+                fillColor: regionColor(f.properties.value),
+                weight: 1.5, opacity: 1, color: 'rgba(34,211,238,0.35)', fillOpacity: 0.3
+            }),
+            onEachFeature: (f, layer) => {
+                layer.on({
+                    mouseover: e => {
+                        e.target.setStyle({ weight: 3, fillOpacity: 0.55, color: '#22d3ee' })
+                        e.target.bringToFront()    // 解决遮挡：高亮区域置顶
+                    },
+                    mouseout: e => geojsonLayer.resetStyle(e.target),
+                    click: e => map.fitBounds(e.target.getBounds(), { padding: [30, 30] })
+                })
+                layer.bindPopup(
+                    `<div style="font-weight:600;color:#22d3ee">${f.properties.name}</div>
+       <div style="color:#94a3b8;font-size:12px">${f.properties.desc}</div>
+       <div style="margin-top:5px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#34d399">
+         发展指数: ${f.properties.value}</div>`
+                )
+            }
+        })
+
+        // ══════════════════════════════════════════════
+        //  5. 热力图 —— leaflet.heat 插件
+        // ══════════════════════════════════════════════
+        // genHeatData 生成热力图使用的示例数据：随机分布的热点点信息
+        function genHeatData() {
+            const data = []
+            const hotspots = [
+                [39.90, 116.40, .9], [31.23, 121.47, 1], [23.13, 113.26, .8],
+                [22.54, 114.06, .85], [30.57, 104.07, .7], [29.56, 106.55, .65],
+                [34.26, 108.95, .6], [36.06, 120.38, .55], [28.23, 113.00, .5],
+                [45.75, 126.65, .4], [43.88, 125.32, .45], [41.80, 123.43, .5],
+                [32.06, 118.80, .6], [30.27, 120.15, .7], [38.04, 114.51, .4]
+            ]
+            hotspots.forEach(([lat, lng, intensity]) => {
+                for (let i = 0; i < 50; i++) {
+                    data.push([
+                        lat + (Math.random() - .5) * 3,
+                        lng + (Math.random() - .5) * 3,
+                        intensity * (.2 + Math.random() * .8)
+                    ])
+                }
+            })
+            return data
+        }
+
+        const heatLayer = L.heatLayer(genHeatData(), {
+            radius: 25, blur: 15, maxZoom: 10,
+            gradient: { 0.2: '#1e3a5f', 0.4: '#22d3ee', 0.6: '#f59e0b', 0.8: '#ef4444', 1: '#f472b6' }
+        })
+
+        // ══════════════════════════════════════════════
+        //  6. 点聚合 —— MarkerCluster 插件 + 自定义图标
+        // ══════════════════════════════════════════════
+        // genClusterData 生成一组模拟点数据，前半部分集中在热点区域，后半部分补足随机散布点。
+        function genClusterData(count) {
+            const pts = []
+            const hotspots = [
+                // [纬度, 经度, 该热点生成点数量]
+                [39.9, 116.4, 35], [31.2, 121.5, 35], [23.1, 113.3, 25],
+                [30.6, 104.1, 18], [34.3, 109.0, 15], [36.1, 120.4, 12],
+                [29.6, 106.6, 12], [45.8, 126.7, 8], [38.0, 114.5, 10]
+            ]
+
+            // 先把每个热点附近生成一些“簇内点”，制造局部密集效果
+            hotspots.forEach(([lat, lng, n]) => {
+                for (let i = 0; i < n; i++) {
+                    pts.push([
+                        lat + (Math.random() - .5) * 2,
+                        lng + (Math.random() - .5) * 2
+                    ])
+                }
+            })
+
+            // 如果点不足 count，则补充一些随机分布的点，避免地图上只有集中点
+            while (pts.length < count) {
+                pts.push([22 + Math.random() * 22, 100 + Math.random() * 35])
+            }
+            return pts
+        }
+
+        // clusterGroup 是 MarkerCluster 的容器，负责把附近点合并成一个聚合图标
+        const clusterGroup = L.markerClusterGroup({
+            // 当点聚合时，聚合圆心最大距离为 50 像素
+            maxClusterRadius: 50,
+            // 悬停时不显示聚合范围圆圈
+            showCoverageOnHover: false,
+            // 自定义聚合图标的渲染逻辑
+            iconCreateFunction: cluster => {
+                const n = cluster.getChildCount()
+                // 根据聚合内数量选择大中小样式
+                const sz = n > 50 ? 'l' : n > 20 ? 'm' : 's'
+                return L.divIcon({
+                    html: `<div class="cluster-inner sz-${sz}">${n}</div>`,
+                    className: 'custom-cluster-icon', iconSize: [40, 40]
+                })
+            }
+        })
+
+        // 把生成的点转成 circleMarker 并加入聚合组中
+        genClusterData(250).forEach(([lat, lng]) => {
+            clusterGroup.addLayer(
+                L.circleMarker([lat, lng], {
+                    radius: 4,
+                    fillColor: '#22d3ee',
+                    fillOpacity: .65,
+                    color: '#0891b2',
+                    weight: 1
+                })
+            )
+        })
+
+        // ══════════════════════════════════════════════
+        //  7. 轨迹动画 —— requestAnimationFrame + 线性插值
+        // ══════════════════════════════════════════════
+        const vehicleRoute = [
+            [39.90, 116.40], [38.91, 105.40], [38.04, 114.51],
+            [37.20, 113.00], [36.06, 112.50], [35.20, 110.50],
+            [34.27, 108.95], [33.50, 107.00], [32.00, 106.00], [30.57, 104.07]
+        ]
+
+        // 车辆图标使用自定义 DivIcon，渲染一个小圆形图标，作为动画对象
+        const vehicleIcon = L.divIcon({
+            className: 'vehicle-marker',
+            html: `<div class="vehicle-icon"><svg viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg></div>`,
+            iconSize: [26, 26],
+            // iconAnchor 将图标定位到自身中心位置，以便移动更自然
+            iconAnchor: [13, 13]
+        })
+
+        // 轨迹动画相关状态变量
+        let vMarker = null      // 移动中的车辆标记
+        let vLine = null        // 已走过轨迹折线
+        let vAnimId = null      // requestAnimationFrame 返回值，用于取消动画
+        let vSeg = 0            // 当前所在路线段索引
+        let vProg = 0           // 当前段内进度，范围 [0,1]
+        let vFrame = 0          // 帧计数，用于降低折线更新频率
+
+        // 启动车辆轨迹动画：先清理旧动画，再创建新 marker 和 polyline
+        function startVehicle() {
+            stopVehicle()
+            // 轨迹线开始为空，后续按移动路径逐步追加点
+            vLine = L.polyline([], {
+                color: '#f59e0b',
+                weight: 3,
+                opacity: .7,
+                dashArray: '6,8'
+            }).addTo(map)
+
+            // 从路线起点创建车辆标记
+            vMarker = L.marker(vehicleRoute[0], {
+                icon: vehicleIcon,
+                zIndexOffset: 1000
+            }).addTo(map)
+
+            // 重置动画状态
+            vSeg = 0;
+            vProg = 0;
+            vFrame = 0
+
+            // 调整视野到整条路线范围，保持动画可见
+            map.fitBounds(L.latLngBounds(vehicleRoute), { padding: [50, 50] })
+            tickVehicle()
+        }
+
+        // 每帧计算车辆位置并更新地图
+        function tickVehicle() {
+            // 如果已经到达最后一段终点，则回到起点重新循环
+            if (vSeg >= vehicleRoute.length - 1) {
+                vSeg = 0;
+                vProg = 0;
+                vLine.setLatLngs([])
+                vMarker.setLatLng(vehicleRoute[0])
+            }
+
+            const s = vehicleRoute[vSeg]
+            const e = vehicleRoute[vSeg + 1]
+
+            // 线性插值计算当前位置：起点 + (终点-起点) * 进度
+            const lat = s[0] + (e[0] - s[0]) * vProg
+            const lng = s[1] + (e[1] - s[1]) * vProg
+            vMarker.setLatLng([lat, lng])
+
+            // 仅每 4 帧更新一次轨迹折线，降低性能开销
+            if (vFrame++ % 4 === 0) {
+                const pts = vLine.getLatLngs()
+                pts.push(L.latLng(lat, lng))
+                vLine.setLatLngs(pts)
+            }
+
+            // 每次循环增加进度，达到 1 说明这一段走完
+            vProg += .008
+            if (vProg >= 1) {
+                vProg = 0
+                vSeg++
+            }
+
+            vAnimId = requestAnimationFrame(tickVehicle)
+        }
+
+        // 停止动画并清理地图上的 marker 和轨迹
+        function stopVehicle() {
+            if (vAnimId) cancelAnimationFrame(vAnimId)
+            vAnimId = null
+            if (vMarker) {
+                map.removeLayer(vMarker)
+                vMarker = null
+            }
+            if (vLine) {
+                map.removeLayer(vLine)
+                vLine = null
+            }
+        }
+
+        // ══════════════════════════════════════════════
+        //  8. 量测工具 —— 点击添加量测点，实时算距离
+        // ══════════════════════════════════════════════
+        // 量测工具状态：是否正在量测、已记录的点、折线和点标记
+        let measuring = false, mPts = [], mLine = null, mDots = []
+
+        function toggleMeasure() {
+            measuring = !measuring
+            const btn = document.getElementById('btn-measure')
+            if (measuring) {
+                btn.classList.add('active-mode')
+                btn.textContent = '✅ 量测中 — 点击地图'
+                map.getContainer().style.cursor = 'crosshair'
+            } else {
+                btn.classList.remove('active-mode')
+                btn.textContent = '📏 开始量测距离'
+                map.getContainer().style.cursor = ''
+            }
+        }
+
+        function clearMeasure() {
+            measuring = false; mPts = []
+            if (mLine) { map.removeLayer(mLine); mLine = null }
+            mDots.forEach(d => map.removeLayer(d)); mDots = []
+            document.getElementById('measure-result').textContent = '点击地图添加量测点'
+            const btn = document.getElementById('btn-measure')
+            btn.classList.remove('active-mode'); btn.textContent = '📏 开始量测距离'
+            map.getContainer().style.cursor = ''
+        }
+
+        function addMPoint(latlng) {
+            mPts.push(latlng)
+            mDots.push(L.circleMarker(latlng, { radius: 4, fillColor: '#22d3ee', fillOpacity: 1, color: '#fff', weight: 2 }).addTo(map))
+            if (mLine) map.removeLayer(mLine)
+            mLine = L.polyline(mPts, { color: '#22d3ee', weight: 2, dashArray: '8,6', opacity: .8 }).addTo(map)
+            let total = 0
+            for (let i = 1; i < mPts.length; i++) total += mPts[i - 1].distanceTo(mPts[i])
+            document.getElementById('measure-result').textContent =
+                `总距离: ${total > 1000 ? (total / 1000).toFixed(2) + ' km' : total.toFixed(0) + ' m'} (${mPts.length} 点)`
+        }
+
+        // ══════════════════════════════════════════════
+        //  9. 自定义控件 —— 坐标追踪
+        // ══════════════════════════════════════════════
+        // CoordsCtrl 创建一个自定义 Leaflet 控件，用于显示鼠标当前经纬度
+        const CoordsCtrl = L.Control.extend({
+            options: { position: 'bottomright' },
+            onAdd(map) {
+                this._div = L.DomUtil.create('div', 'coords-display')
+                this._div.textContent = '移动鼠标…'
+                map.on('mousemove', e => {
+                    this._div.textContent = `${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`
+                })
+                return this._div
+            }
+        })
+        new CoordsCtrl().addTo(map)
+
+        // ══════════════════════════════════════════════
+        //  10. 事件绑定
+        // ══════════════════════════════════════════════
+        // 注册页面交互事件：地图点击、缩放移动、侧栏切换、图层开关和按钮点击
+
+        // 地图点击 → 量测
+        map.on('click', e => { if (measuring) addMPoint(e.latlng) })
+
+        // 地图状态更新
+        function updateInfo() {
+            const c = map.getCenter()
+            document.getElementById('info-zoom').textContent = map.getZoom()
+            document.getElementById('info-center').textContent = `${c.lat.toFixed(2)}, ${c.lng.toFixed(2)}`
+        }
+        map.on('zoomend moveend', updateInfo)
+        updateInfo()
+
+        // ── Sidebar tab switching ──
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'))
+                btn.classList.add('active')
+                document.getElementById('panel-' + btn.dataset.tab).classList.add('active')
+                // 关键：Tab 切换后容器尺寸变了
+                setTimeout(() => map.invalidateSize(), 50)
+            })
+        })
+
+        // ── Layer toggles ──
+        document.getElementById('tog-heat').onchange = e =>
+            e.target.checked ? heatLayer.addTo(map) : map.removeLayer(heatLayer)
+
+        document.getElementById('tog-cluster').onchange = e =>
+            e.target.checked ? clusterGroup.addTo(map) : map.removeLayer(clusterGroup)
+
+        document.getElementById('tog-geo').onchange = e =>
+            e.target.checked ? geojsonLayer.addTo(map) : map.removeLayer(geojsonLayer)
+
+        document.getElementById('tog-vehicle').onchange = e =>
+            e.target.checked ? startVehicle() : stopVehicle()
+
+        // ── Base layer switch ──
+        document.querySelectorAll('input[name="base"]').forEach(r => {
+            r.onchange = () => {
+                Object.values(baseLayers).forEach(l => map.removeLayer(l))
+                baseLayers[r.value].addTo(map)
+            }
+        })
+
+        // ── Tool buttons ──
+        document.getElementById('btn-measure').onclick = toggleMeasure
+        document.getElementById('btn-clear-measure').onclick = clearMeasure
+        document.getElementById('fly-bj').onclick = () => map.flyTo([39.9042, 116.4074], 12, { duration: 1.5 })
+        document.getElementById('fly-sh').onclick = () => map.flyTo([31.2304, 121.4737], 12, { duration: 1.5 })
+        document.getElementById('fly-cd').onclick = () => map.flyTo([30.5728, 104.0668], 12, { duration: 1.5 })
+        document.getElementById('fly-reset').onclick = () => map.flyTo([35.86, 104.19], 5, { duration: 1.5 })
+    </script>
+
+</body>
+
+</html>

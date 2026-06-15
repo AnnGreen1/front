@@ -1,15 +1,22 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Leaflet 地图入门指南</title>
   <!-- Leaflet CSS & JS (CDN) -->
+  <!--
+    引入 Leaflet：通过 CDN 将 Leaflet 的样式和脚本挂载到页面，全局命名空间为 `L`。
+    在未使用模块打包（如 webpack/parcel）时，可以直接通过 <script> 使用 `L`。
+  -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
 
   <style>
     :root {
@@ -26,7 +33,11 @@
       --radius: 12px;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
     body {
       font-family: 'Noto Sans SC', sans-serif;
@@ -39,7 +50,8 @@
     /* ── Background grain ── */
     body::before {
       content: '';
-      position: fixed; inset: 0;
+      position: fixed;
+      inset: 0;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
       pointer-events: none;
       z-index: 0;
@@ -105,7 +117,9 @@
     }
 
     @media (max-width: 960px) {
-      .main-grid { grid-template-columns: 1fr; }
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     /* ── Map container ── */
@@ -119,7 +133,8 @@
 
     .panel-label {
       position: absolute;
-      top: 16px; left: 16px;
+      top: 16px;
+      left: 16px;
       z-index: 1000;
       display: flex;
       align-items: center;
@@ -133,12 +148,13 @@
       backdrop-filter: blur(12px);
       padding: 8px 14px;
       border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.06);
+      border: 1px solid rgba(255, 255, 255, 0.06);
       pointer-events: none;
     }
 
     .panel-label .dot {
-      width: 6px; height: 6px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
       background: var(--accent-green);
       box-shadow: 0 0 8px var(--accent-green);
@@ -183,7 +199,8 @@
 
     .card-title::before {
       content: '';
-      width: 3px; height: 14px;
+      width: 3px;
+      height: 14px;
       border-radius: 2px;
       background: var(--accent);
     }
@@ -219,7 +236,8 @@
     }
 
     .ctrl-btn .icon {
-      width: 36px; height: 36px;
+      width: 36px;
+      height: 36px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -228,10 +246,25 @@
       flex-shrink: 0;
     }
 
-    .ctrl-btn .icon.cyan   { background: rgba(34, 211, 238, 0.1); color: var(--accent); }
-    .ctrl-btn .icon.amber   { background: rgba(245, 158, 11, 0.1); color: var(--accent-warm); }
-    .ctrl-btn .icon.green   { background: rgba(52, 211, 153, 0.1); color: var(--accent-green); }
-    .ctrl-btn .icon.pink    { background: rgba(244, 114, 182, 0.1); color: var(--accent-pink); }
+    .ctrl-btn .icon.cyan {
+      background: rgba(34, 211, 238, 0.1);
+      color: var(--accent);
+    }
+
+    .ctrl-btn .icon.amber {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--accent-warm);
+    }
+
+    .ctrl-btn .icon.green {
+      background: rgba(52, 211, 153, 0.1);
+      color: var(--accent-green);
+    }
+
+    .ctrl-btn .icon.pink {
+      background: rgba(244, 114, 182, 0.1);
+      color: var(--accent-pink);
+    }
 
     .ctrl-btn .label-wrap span {
       display: block;
@@ -252,7 +285,7 @@
       justify-content: space-between;
       align-items: center;
       padding-bottom: 14px;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     }
 
     .info-item:last-child {
@@ -293,22 +326,32 @@
       align-items: center;
       gap: 8px;
       padding: 14px 20px;
-      background: rgba(255,255,255,0.02);
+      background: rgba(255, 255, 255, 0.02);
       border-bottom: 1px solid var(--border);
     }
 
     .code-header .dot-row {
-      display: flex; gap: 6px;
+      display: flex;
+      gap: 6px;
     }
 
     .code-header .dot-row span {
-      width: 10px; height: 10px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
     }
 
-    .code-header .dot-row span:nth-child(1) { background: #ef4444; }
-    .code-header .dot-row span:nth-child(2) { background: #f59e0b; }
-    .code-header .dot-row span:nth-child(3) { background: #22c55e; }
+    .code-header .dot-row span:nth-child(1) {
+      background: #ef4444;
+    }
+
+    .code-header .dot-row span:nth-child(2) {
+      background: #f59e0b;
+    }
+
+    .code-header .dot-row span:nth-child(3) {
+      background: #22c55e;
+    }
 
     .code-header .filename {
       font-family: 'JetBrains Mono', monospace;
@@ -329,12 +372,30 @@
       color: #cbd5e1;
     }
 
-    .code-body .kw  { color: #c084fc; }
-    .code-body .fn  { color: #67e8f9; }
-    .code-body .str { color: #86efac; }
-    .code-body .cm  { color: #475569; font-style: italic; }
-    .code-body .num { color: #fbbf24; }
-    .code-body .op  { color: #94a3b8; }
+    .code-body .kw {
+      color: #c084fc;
+    }
+
+    .code-body .fn {
+      color: #67e8f9;
+    }
+
+    .code-body .str {
+      color: #86efac;
+    }
+
+    .code-body .cm {
+      color: #475569;
+      font-style: italic;
+    }
+
+    .code-body .num {
+      color: #fbbf24;
+    }
+
+    .code-body .op {
+      color: #94a3b8;
+    }
 
     /* ── Section headers ── */
     .section-header {
@@ -378,14 +439,14 @@
       color: var(--text-muted);
       text-align: left;
       padding: 14px 20px;
-      background: rgba(255,255,255,0.02);
+      background: rgba(255, 255, 255, 0.02);
       border-bottom: 1px solid var(--border);
     }
 
     .api-table tbody td {
       padding: 14px 20px;
       font-size: 14px;
-      border-bottom: 1px solid rgba(255,255,255,0.03);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
       vertical-align: top;
     }
 
@@ -410,8 +471,15 @@
 
     /* ── Animations ── */
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(24px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* ── Custom Leaflet popup ── */
@@ -420,7 +488,7 @@
       backdrop-filter: blur(16px) !important;
       border: 1px solid rgba(34, 211, 238, 0.2) !important;
       border-radius: 10px !important;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
       color: #e2e8f0 !important;
       font-family: 'Noto Sans SC', sans-serif !important;
     }
@@ -470,98 +538,99 @@
     }
   </style>
 </head>
+
 <body>
 
-<div class="page-wrapper">
+  <div class="page-wrapper">
 
-  <!-- ── Header ── -->
-  <header class="header">
-    <div class="tag">● 交互式教程</div>
-    <h1>Leaflet.js 基本使用指南</h1>
-    <p>Leaflet 是最流行的开源 JavaScript 地图库。轻量（仅 42KB gzipped）、移动端友好、API 简洁优雅。点击右侧按钮体验核心功能。</p>
-  </header>
-  <!-- ── Main Grid ── -->
-  <div class="main-grid">
+    <!-- ── Header ── -->
+    <header class="header">
+      <div class="tag">● 交互式教程</div>
+      <h1>Leaflet.js 基本使用指南</h1>
+      <p>Leaflet 是最流行的开源 JavaScript 地图库。轻量（仅 42KB gzipped）、移动端友好、API 简洁优雅。点击右侧按钮体验核心功能。</p>
+    </header>
+    <!-- ── Main Grid ── -->
+    <div class="main-grid">
 
-    <!-- Map -->
-    <div class="map-panel">
-      <div class="panel-label"><span class="dot"></span> Live Map</div>
-      <div id="map"></div>
-    </div>
-    <!-- Sidebar -->
-    <div class="sidebar">
-
-      <!-- Controls -->
-      <div class="card">
-        <div class="card-title">交互操作</div>
-        <div class="controls">
-          <button class="ctrl-btn" onclick="flyToBeijing()">
-            <span class="icon cyan">📍</span>
-            <div class="label-wrap">
-              <strong>飞到北京</strong>
-              <span>map.flyTo() 动画跳转</span>
-            </div>
-          </button>
-          <button class="ctrl-btn" onclick="addCircle()">
-            <span class="icon amber">⭕</span>
-            <div class="label-wrap">
-              <strong>添加圆形区域</strong>
-              <span>L.circle() 绘制覆盖范围</span>
-            </div>
-          </button>
-          <button class="ctrl-btn" onclick="drawRoute()">
-            <span class="icon green">〰️</span>
-            <div class="label-wrap">
-              <strong>绘制路线</strong>
-              <span>L.polyline() 折线路径</span>
-            </div>
-          </button>
-          <button class="ctrl-btn" onclick="clearAll()">
-            <span class="icon pink">✕</span>
-            <div class="label-wrap">
-              <strong>清除所有覆盖物</strong>
-              <span>map.removeLayer() 移除图层</span>
-            </div>
-          </button>
-        </div>
+      <!-- Map -->
+      <div class="map-panel">
+        <div class="panel-label"><span class="dot"></span> Live Map</div>
+        <div id="map"></div>
       </div>
-      <!-- Map Info -->
-      <div class="card">
-        <div class="card-title">地图状态</div>
-        <div class="info-list">
-          <div class="info-item">
-            <span class="key">缩放级别</span>
-            <span class="val" id="info-zoom">5</span>
-          </div>
-          <div class="info-item">
-            <span class="key">中心坐标</span>
-            <span class="val" id="info-center">35.86, 104.19</span>
-          </div>
-          <div class="info-item">
-            <span class="key">覆盖物数量</span>
-            <span class="val" id="info-layers">0</span>
-          </div>
-          <div class="info-item">
-            <span class="key">最后点击</span>
-            <span class="val" id="info-click">--</span>
+      <!-- Sidebar -->
+      <div class="sidebar">
+
+        <!-- Controls -->
+        <div class="card">
+          <div class="card-title">交互操作</div>
+          <div class="controls">
+            <button class="ctrl-btn" onclick="flyToBeijing()">
+              <span class="icon cyan">📍</span>
+              <div class="label-wrap">
+                <strong>飞到北京</strong>
+                <span>map.flyTo() 动画跳转</span>
+              </div>
+            </button>
+            <button class="ctrl-btn" onclick="addCircle()">
+              <span class="icon amber">⭕</span>
+              <div class="label-wrap">
+                <strong>添加圆形区域</strong>
+                <span>L.circle() 绘制覆盖范围</span>
+              </div>
+            </button>
+            <button class="ctrl-btn" onclick="drawRoute()">
+              <span class="icon green">〰️</span>
+              <div class="label-wrap">
+                <strong>绘制路线</strong>
+                <span>L.polyline() 折线路径</span>
+              </div>
+            </button>
+            <button class="ctrl-btn" onclick="clearAll()">
+              <span class="icon pink">✕</span>
+              <div class="label-wrap">
+                <strong>清除所有覆盖物</strong>
+                <span>map.removeLayer() 移除图层</span>
+              </div>
+            </button>
           </div>
         </div>
+        <!-- Map Info -->
+        <div class="card">
+          <div class="card-title">地图状态</div>
+          <div class="info-list">
+            <div class="info-item">
+              <span class="key">缩放级别</span>
+              <span class="val" id="info-zoom">5</span>
+            </div>
+            <div class="info-item">
+              <span class="key">中心坐标</span>
+              <span class="val" id="info-center">35.86, 104.19</span>
+            </div>
+            <div class="info-item">
+              <span class="key">覆盖物数量</span>
+              <span class="val" id="info-layers">0</span>
+            </div>
+            <div class="info-item">
+              <span class="key">最后点击</span>
+              <span class="val" id="info-click">--</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-  <!-- ── Code Snippet ── -->
-  <div class="section-header" style="animation-delay: 0.3s;">
-    <h2>起步代码</h2>
-    <p>只需几行就能初始化一个地图</p>
-  </div>
-  <div class="code-card">
-    <div class="code-block">
-      <div class="code-header">
-        <div class="dot-row"><span></span><span></span><span></span></div>
-        <span class="filename">app.js</span>
-      </div>
-      <div class="code-body">
-<pre><span class="cm">// 1. 创建地图，设置视图中心和缩放级别</span>
+    <!-- ── Code Snippet ── -->
+    <div class="section-header" style="animation-delay: 0.3s;">
+      <h2>起步代码</h2>
+      <p>只需几行就能初始化一个地图</p>
+    </div>
+    <div class="code-card">
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dot-row"><span></span><span></span><span></span></div>
+          <span class="filename">app.js</span>
+        </div>
+        <div class="code-body">
+          <pre><span class="cm">// 1. 创建地图，设置视图中心和缩放级别</span>
 <span class="kw">const</span> map <span class="op">=</span> <span class="fn">L.map</span>(<span class="str">'map'</span>).<span class="fn">setView</span>([<span class="num">35.86</span>, <span class="num">104.19</span>], <span class="num">5</span>);
 
 <span class="cm">// 2. 加载瓦片图层（OpenStreetMap 免费底图）</span>
@@ -581,186 +650,217 @@ map.<span class="fn">on</span>(<span class="str">'click'</span>, (e) <span class
   <span class="fn">L.marker</span>(e.latlng).<span class="fn">addTo</span>(map)
     .<span class="fn">bindPopup</span>(<span class="str">`点击位置: ${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`</span>);
 });</pre>
+        </div>
       </div>
     </div>
+    <!-- ── API Table ── -->
+    <div class="section-header" style="animation-delay: 0.45s;">
+      <h2>核心 API 速查</h2>
+      <p>掌握这些就覆盖了 90% 的日常使用场景</p>
+    </div>
+    <div class="api-table-wrap">
+      <table class="api-table">
+        <thead>
+          <tr>
+            <th>方法</th>
+            <th>说明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="code-cell">L.map('id').setView([lat, lng], zoom)</td>
+            <td class="desc-cell">初始化地图，指定容器 ID、中心坐标和缩放级别</td>
+          </tr>
+          <tr>
+            <td class="code-cell">L.tileLayer(url, options).addTo(map)</td>
+            <td class="desc-cell">加载瓦片图层，常用 OpenStreetMap、高德、Mapbox 底图</td>
+          </tr>
+          <tr>
+            <td class="code-cell">L.marker([lat, lng]).addTo(map)</td>
+            <td class="desc-cell">在指定坐标添加标记点，支持拖拽（draggable: true）</td>
+          </tr>
+          <tr>
+            <td class="code-cell">layer.bindPopup(html)</td>
+            <td class="desc-cell">绑定弹窗内容，点击标记时弹出 HTML 信息</td>
+          </tr>
+          <tr>
+            <td class="code-cell">L.circle([lat, lng], { radius })</td>
+            <td class="desc-cell">绘制圆形区域，可设置半径（米）、颜色、透明度</td>
+          </tr>
+          <tr>
+            <td class="code-cell">L.polyline(latlngs, options)</td>
+            <td class="desc-cell">绘制折线路径，适合路线、边界等</td>
+          </tr>
+          <tr>
+            <td class="code-cell">L.polygon(latlngs, options)</td>
+            <td class="desc-cell">绘制多边形区域，支持自动闭合</td>
+          </tr>
+          <tr>
+            <td class="code-cell">map.flyTo([lat, lng], zoom)</td>
+            <td class="desc-cell">带动画飞行到目标位置，比 setView 更流畅</td>
+          </tr>
+          <tr>
+            <td class="code-cell">map.on('event', callback)</td>
+            <td class="desc-cell">监听事件：click、zoomend、moveend 等</td>
+          </tr>
+          <tr>
+            <td class="code-cell">map.removeLayer(layer)</td>
+            <td class="desc-cell">移除已添加的图层 / 覆盖物</td>
+          </tr>
+          <tr>
+            <td class="code-cell">L.layerGroup([layers])</td>
+            <td class="desc-cell">将多个图层编组，便于统一管理和批量操作</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
-  <!-- ── API Table ── -->
-  <div class="section-header" style="animation-delay: 0.45s;">
-    <h2>核心 API 速查</h2>
-    <p>掌握这些就覆盖了 90% 的日常使用场景</p>
-  </div>
-  <div class="api-table-wrap">
-    <table class="api-table">
-      <thead>
-        <tr>
-          <th>方法</th>
-          <th>说明</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="code-cell">L.map('id').setView([lat, lng], zoom)</td>
-          <td class="desc-cell">初始化地图，指定容器 ID、中心坐标和缩放级别</td>
-        </tr>
-        <tr>
-          <td class="code-cell">L.tileLayer(url, options).addTo(map)</td>
-          <td class="desc-cell">加载瓦片图层，常用 OpenStreetMap、高德、Mapbox 底图</td>
-        </tr>
-        <tr>
-          <td class="code-cell">L.marker([lat, lng]).addTo(map)</td>
-          <td class="desc-cell">在指定坐标添加标记点，支持拖拽（draggable: true）</td>
-        </tr>
-        <tr>
-          <td class="code-cell">layer.bindPopup(html)</td>
-          <td class="desc-cell">绑定弹窗内容，点击标记时弹出 HTML 信息</td>
-        </tr>
-        <tr>
-          <td class="code-cell">L.circle([lat, lng], { radius })</td>
-          <td class="desc-cell">绘制圆形区域，可设置半径（米）、颜色、透明度</td>
-        </tr>
-        <tr>
-          <td class="code-cell">L.polyline(latlngs, options)</td>
-          <td class="desc-cell">绘制折线路径，适合路线、边界等</td>
-        </tr>
-        <tr>
-          <td class="code-cell">L.polygon(latlngs, options)</td>
-          <td class="desc-cell">绘制多边形区域，支持自动闭合</td>
-        </tr>
-        <tr>
-          <td class="code-cell">map.flyTo([lat, lng], zoom)</td>
-          <td class="desc-cell">带动画飞行到目标位置，比 setView 更流畅</td>
-        </tr>
-        <tr>
-          <td class="code-cell">map.on('event', callback)</td>
-          <td class="desc-cell">监听事件：click、zoomend、moveend 等</td>
-        </tr>
-        <tr>
-          <td class="code-cell">map.removeLayer(layer)</td>
-          <td class="desc-cell">移除已添加的图层 / 覆盖物</td>
-        </tr>
-        <tr>
-          <td class="code-cell">L.layerGroup([layers])</td>
-          <td class="desc-cell">将多个图层编组，便于统一管理和批量操作</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-<script>
-  // ── Initialize Map ──
-  const map = L.map('map', {
-    zoomControl: true,
-    attributionControl: true
-  }).setView([35.86, 104.19], 5);
+  <script>
+    // ── Initialize Map ──
+    // 创建地图实例并设置默认选项
+    // 参数说明：
+    // - 'map'：容器元素 ID（对应页面中的 <div id="map">）
+    // - zoomControl：是否显示缩放控件（+/-），默认 true
+    // - attributionControl：是否显示右下角版权/来源控件（默认 true）
+    // 最后调用 setView([lat, lng], zoom) 设置初始视图中心和缩放级别
+    const map = L.map('map', {
+      zoomControl: true,
+      attributionControl: true
+    }).setView([35.86, 104.19], 5);
 
-  // Dark-themed tile layer (CartoDB Dark Matter)
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 19
-  }).addTo(map);
+    // Dark-themed tile layer (CartoDB Dark Matter)
+    // tileLayer 用于加载瓦片地图：URL 模板、选项（如 attribution、subdomains、maxZoom）
+    // attribution 文本会显示在 attributionControl 中（若启用）。
 
-  // ── Layer tracking ──
-  const dynamicLayers = [];
+    // `subdomains: 'abcd'` 是 `L.tileLayer` 的选项，用来替换 URL 模板中的 `{s}` 占位符：
+    // - 含义：指定可用的子域名列表（这里是 `"a"、"b"、"c"、"d"`）。Leaflet 会在请求瓦片时轮流使用这些子域（a.tile..., b.tile...），以增加并发请求数并分散 CDN/缓存负载。  
+    // - 格式：可传字符串（如 `'abcd'`）或数组（如 `['a','b','c','d']`）。  
+    // - 要点：只有当瓦片 URL 含 `{s}` 时生效；子域必须和瓦片服务提供方支持的子域一致，否则会 404。  
+    // 示例：`L.tileLayer('https://{s}.tile.example.com/{z}/{x}/{y}.png', { subdomains: 'abcd' })` 会向 `a.tile.example.com`、`b.tile.example.com` 等请求瓦片。
 
-  function addDynamicLayer(layer) {
-    layer.addTo(map);
-    dynamicLayers.push(layer);
-    updateLayerCount();
-  }
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(map);
 
-  function updateLayerCount() {
-    document.getElementById('info-layers').textContent = dynamicLayers.length;
-  }
+    // ── Layer tracking ──
+    // 保存通过按钮或交互动态添加到地图的覆盖物（circle、polyline 等），便于统一移除
+    const dynamicLayers = [];
 
-  // ── Initial markers ──
-  const cities = [
-    { lat: 39.9042, lng: 116.4074, name: '北京', desc: '中国的首都，政治文化中心' },
-    { lat: 31.2304, lng: 121.4737, name: '上海', desc: '国际金融中心，东方明珠' },
-    { lat: 23.1291, lng: 113.2644, name: '广州', desc: '千年商都，岭南文化名城' },
-    { lat: 30.5728, lng: 104.0668, name: '成都', desc: '天府之国，美食与大熊猫' },
-    { lat: 34.2658, lng: 108.9541, name: '西安', desc: '十三朝古都，丝绸之路起点' },
-  ];
+    // 将图层添加到地图并记录到 dynamicLayers 数组
+    function addDynamicLayer(layer) {
+      layer.addTo(map);
+      dynamicLayers.push(layer);
+      updateLayerCount();
+    }
 
-  cities.forEach(c => {
-    const marker = L.marker([c.lat, c.lng])
-      .addTo(map)
-      .bindPopup(`
+    // 更新侧栏中显示的覆盖物数量
+    function updateLayerCount() {
+      document.getElementById('info-layers').textContent = dynamicLayers.length;
+    }
+
+    // ── Initial markers ──
+    // 预先添加一些城市标记，演示 marker + popup 的使用
+    const cities = [
+      { lat: 39.9042, lng: 116.4074, name: '北京', desc: '中国的首都，政治文化中心' },
+      { lat: 31.2304, lng: 121.4737, name: '上海', desc: '国际金融中心，东方明珠' },
+      { lat: 23.1291, lng: 113.2644, name: '广州', desc: '千年商都，岭南文化名城' },
+      { lat: 30.5728, lng: 104.0668, name: '成都', desc: '天府之国，美食与大熊猫' },
+      { lat: 34.2658, lng: 108.9541, name: '西安', desc: '十三朝古都，丝绸之路起点' },
+    ];
+
+    cities.forEach(c => {
+      // L.marker([lat, lng]) 创建一个标记，addTo(map) 将其放到地图上
+      // bindPopup 可以绑定 HTML 内容，点击标记会显示弹窗
+      const marker = L.marker([c.lat, c.lng])
+        .addTo(map)
+        .bindPopup(`
         <div class="popup-title">${c.name}</div>
         <div class="popup-desc">${c.desc}</div>
       `);
-  });
+    });
 
-  // ── Click to add marker ──
-  map.on('click', function(e) {
-    const { lat, lng } = e.latlng;
-    const marker = L.marker([lat, lng])
-      .addTo(map)
-      .bindPopup(`
+    // ── 点击地图添加标记 ──
+    // 监听 map 的 click 事件，事件对象 e.latlng 包含经纬度
+    map.on('click', function (e) {
+      const { lat, lng } = e.latlng;
+      const marker = L.marker([lat, lng])
+        .addTo(map)
+        .bindPopup(`
         <div class="popup-title">自定义标记</div>
         <div class="popup-desc">${lat.toFixed(4)}, ${lng.toFixed(4)}</div>
       `)
-      .openPopup();
+        .openPopup();
 
-    document.getElementById('info-click').textContent = `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
-  });
+      // 更新侧栏“最后点击”显示
+      document.getElementById('info-click').textContent = `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
+    });
 
-  // ── Update map info on move/zoom ──
-  function updateMapInfo() {
-    const center = map.getCenter();
-    document.getElementById('info-zoom').textContent = map.getZoom();
-    document.getElementById('info-center').textContent = `${center.lat.toFixed(2)}, ${center.lng.toFixed(2)}`;
-  }
+    // ── Update map info on move/zoom ──
+    // 当地图缩放或移动结束时，同步更新侧栏显示的缩放级别与中心坐标
+    function updateMapInfo() {
+      const center = map.getCenter();
+      document.getElementById('info-zoom').textContent = map.getZoom();
+      document.getElementById('info-center').textContent = `${center.lat.toFixed(2)}, ${center.lng.toFixed(2)}`;
+    }
 
-  map.on('zoomend', updateMapInfo);
-  map.on('moveend', updateMapInfo);
+    map.on('zoomend', updateMapInfo);
+    map.on('moveend', updateMapInfo);
 
-  // ── Button actions ──
-  function flyToBeijing() {
-    map.flyTo([39.9042, 116.4074], 12, { duration: 2 });
-  }
+    // ── Button actions ──
+    // 演示如何通过按钮控制地图：flyTo / circle / polyline / clear
+    function flyToBeijing() {
+      // 平滑动画飞行到指定位置（经度纬度，缩放级别，可选配置）
+      map.flyTo([39.9042, 116.4074], 12, { duration: 2 });
+    }
 
-  function addCircle() {
-    const center = map.getCenter();
-    const circle = L.circle([center.lat + 0.05, center.lng + 0.05], {
-      radius: 25000,
-      color: '#f59e0b',
-      fillColor: '#f59e0b',
-      fillOpacity: 0.15,
-      weight: 2
-    }).bindPopup(`
+    function addCircle() {
+      // 在当前中心偏移位置绘制一个圆形覆盖物，单位为米
+      const center = map.getCenter();
+      const circle = L.circle([center.lat + 0.05, center.lng + 0.05], {
+        radius: 25000,
+        color: '#f59e0b',
+        fillColor: '#f59e0b',
+        fillOpacity: 0.15,
+        weight: 2
+      }).bindPopup(`
       <div class="popup-title">覆盖范围</div>
       <div class="popup-desc">半径 25 公里</div>
     `);
-    addDynamicLayer(circle);
-  }
+      addDynamicLayer(circle);
+    }
 
-  function drawRoute() {
-    const routeCoords = [
-      [39.9042, 116.4074],
-      [38.0428, 114.5149],
-      [36.0611, 103.8343],
-      [34.2658, 108.9541],
-      [30.5728, 104.0668],
-    ];
-    const polyline = L.polyline(routeCoords, {
-      color: '#34d399',
-      weight: 3,
-      opacity: 0.8,
-      dashArray: '8, 8'
-    }).bindPopup(`
+    function drawRoute() {
+      // 使用 polyline 绘制折线路径，并添加到地图
+      const routeCoords = [
+        [39.9042, 116.4074],
+        [38.0428, 114.5149],
+        [36.0611, 103.8343],
+        [34.2658, 108.9541],
+        [30.5728, 104.0668],
+      ];
+      const polyline = L.polyline(routeCoords, {
+        color: '#34d399',
+        weight: 3,
+        opacity: 0.8,
+        dashArray: '8, 8'
+      }).bindPopup(`
       <div class="popup-title">示例路线</div>
       <div class="popup-desc">北京 → 石家庄 → 兰州 → 西安 → 成都</div>
     `);
-    addDynamicLayer(polyline);
-    map.fitBounds(polyline.getBounds(), { padding: [40, 40] });
-  }
+      addDynamicLayer(polyline);
+      // fitBounds 将视图缩放/平移到包含 polyline 的可见区域
+      map.fitBounds(polyline.getBounds(), { padding: [40, 40] });
+    }
 
-  function clearAll() {
-    dynamicLayers.forEach(layer => map.removeLayer(layer));
-    dynamicLayers.length = 0;
-    updateLayerCount();
-  }
-</script>
+    function clearAll() {
+      // 移除所有动态添加的图层并清空计数
+      dynamicLayers.forEach(layer => map.removeLayer(layer));
+      dynamicLayers.length = 0;
+      updateLayerCount();
+    }
+  </script>
 </body>
+
 </html>

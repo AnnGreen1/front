@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天地图基本使用</title>
+
+    <!-- 天地图 JS API v4.0 — 需要替换为你自己的 key -->
+    <script src="https://api.tianditu.gov.cn/api?v=4.0&tk=eebc7831ad35aa41acac125945341982"
+        type="text/javascript"></script>
+
+    <!-- Leaflet（用于对比方案） -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #0b1120;
+            --surface: #111827;
+            --surface-2: #1a2236;
+            --surface-3: #1f2a42;
+            --accent: #0ea5e9;
+            --accent-warm: #f59e0b;
+            --accent-green: #22c55e;
+            --accent-pink: #ec4899;
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --border: rgba(255, 255, 255, 0.06);
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 350px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-head {
+            padding: 24px 20px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--accent);
+            background: rgba(14, 165, 233, .08);
+            border: 1px solid rgba(14, 165, 233, .2);
+            padding: 3px 10px;
+            border-radius: 100px;
+            margin-bottom: 12px;
+        }
+
+        .tag .dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            box-shadow: 0 0 6px var(--accent-green);
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .3
+            }
+        }
+
+        .sidebar-head h1 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            background: linear-gradient(135deg, #e5e7eb, #0ea5e9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-head p {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* Tabs */
+        .tab-nav {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 11px 0;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-family: 'Noto Sans SC', sans-serif;
+            font-size: 12px;
+            cursor: pointer;
+            position: relative;
+            transition: color .25s;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-secondary);
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 20%;
+            width: 60%;
+            height: 2px;
+            background: var(--accent);
+            border-radius: 2px 2px 0 0;
+        }
+
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .tab-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .tab-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .tab-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, .06);
+            border-radius: 4px;
+        }
+
+        .panel {
+            display: none;
+            padding: 20px;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        /* Section */
+        .sec-title {
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sec-title::before {
+            content: '';
+            width: 3px;
+            height: 12px;
+            border-radius: 2px;
+            background: var(--accent);
+        }
+
+        /* Buttons */
+        .tool-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            margin-bottom: 14px;
+        }
+
+        .tool-btn {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Noto Sans SC', sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all .2s;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tool-btn:hover {
+            background: rgba(14, 165, 233, .06);
+            border-color: rgba(14, 165, 233, .15);
+        }
+
+        .tool-btn .emoji {
+            width: 22px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .tool-btn .sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: block;
+            margin-top: 2px;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 16px 0;
+        }
+
+        /* Toggle */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .toggle-row:last-child {
+            border-bottom: none;
+        }
+
+        .toggle-label {
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-label .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        .switch {
+            position: relative;
+            width: 38px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch .slider {
+            position: absolute;
+            inset: 0;
+            background: var(--surface-3);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background .3s;
+        }
+
+        .switch .slider::before {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            left: 3px;
+            top: 3px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            transition: all .3s;
+        }
+
+        .switch input:checked+.slider {
+            background: rgba(14, 165, 233, .18);
+        }
+
+        .switch input:checked+.slider::before {
+            transform: translateX(18px);
+            background: var(--accent);
+        }
+
+        /* Search input */
+        .search-box {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Noto Sans SC', sans-serif;
+            font-size: 13px;
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-input:focus {
+            border-color: rgba(14, 165, 233, .4);
+        }
+
+        .search-go {
+            padding: 10px 16px;
+            background: rgba(14, 165, 233, .12);
+            border: 1px solid rgba(14, 165, 233, .3);
+            border-radius: 8px;
+            color: var(--accent);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .search-go:hover {
+            background: rgba(14, 165, 233, .2);
+        }
+
+        /* Result list */
+        .result-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .result-item {
+            padding: 10px 12px;
+            background: var(--surface-2);
+            border-radius: 8px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .result-item:hover {
+            border-color: rgba(14, 165, 233, .2);
+        }
+
+        .result-item .name {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+
+        .result-item .addr {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .result-item .coord {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--accent);
+            margin-top: 4px;
+        }
+
+        /* Info grid */
+        .info-grid {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 2;
+        }
+
+        .info-grid .val {
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* API card */
+        .api-card {
+            margin-bottom: 8px;
+            background: var(--surface-2);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .api-card summary {
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color .2s;
+        }
+
+        .api-card summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .api-card summary::before {
+            content: '▸';
+            font-size: 11px;
+            color: var(--accent);
+            transition: transform .2s;
+        }
+
+        .api-card[open] summary::before {
+            transform: rotate(90deg);
+        }
+
+        .api-card[open] summary {
+            color: var(--accent);
+        }
+
+        .api-body {
+            padding: 0 14px 14px;
+            font-size: 12px;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+
+        .api-body code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            background: rgba(14, 165, 233, .08);
+            color: var(--accent);
+            padding: 1px 5px;
+            border-radius: 3px;
+        }
+
+        .api-body pre {
+            margin-top: 8px;
+            padding: 10px;
+            background: #080d1a;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #9ca3af;
+        }
+
+        .api-body pre .hl {
+            color: var(--accent);
+        }
+
+        .api-body pre .cm {
+            color: #4b5563;
+            font-style: italic;
+        }
+
+        .api-body pre .str {
+            color: #86efac;
+        }
+
+        /* Pitfall cards */
+        .pf-card {
+            margin-bottom: 6px;
+            background: var(--surface-2);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .pf-card summary {
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color .2s;
+        }
+
+        .pf-card summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .pf-card summary::before {
+            content: '▸';
+            font-size: 11px;
+            color: var(--accent-warm);
+            transition: transform .2s;
+        }
+
+        .pf-card[open] summary::before {
+            transform: rotate(90deg);
+        }
+
+        .pf-card[open] summary {
+            color: var(--accent-warm);
+        }
+
+        .pf-card .body {
+            padding: 0 14px 14px;
+            font-size: 12px;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+
+        .pf-card .body code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            background: rgba(245, 158, 11, .08);
+            color: var(--accent-warm);
+            padding: 1px 5px;
+            border-radius: 3px;
+        }
+
+        .pf-card .body pre {
+            margin-top: 8px;
+            padding: 10px;
+            background: #080d1a;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #9ca3af;
+        }
+
+        .pf-card .body pre .hl {
+            color: var(--accent-warm);
+        }
+
+        /* Map area */
+        .map-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            background: #0b1120;
+        }
+
+        /* Coords bar */
+        .coords-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(17, 24, 39, .85);
+            backdrop-filter: blur(8px);
+            padding: 6px 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid var(--border);
+            z-index: 1000;
+        }
+
+        /* API notice */
+        .api-notice {
+            padding: 12px 14px;
+            background: rgba(14, 165, 233, .06);
+            border: 1px solid rgba(14, 165, 233, .15);
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 14px;
+        }
+
+        .api-notice strong {
+            color: var(--accent);
+        }
+
+        /* Responsive */
+        @media(max-width:800px) {
+            .app {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                max-height: 45vh;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .map-wrapper {
+                flex: 1;
+                min-height: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+        <!-- ════ SIDEBAR ════ -->
+        <aside class="sidebar">
+            <div class="sidebar-head">
+                <div class="tag"><span class="dot"></span> TIANDITU</div>
+                <h1>天地图基本使用指南</h1>
+                <p>国家地理信息公共服务平台，免费地图瓦片 + 丰富的 GIS 服务接口</p>
+            </div>
+
+            <nav class="tab-nav">
+                <button class="tab-btn active" data-tab="layers">图层</button>
+                <button class="tab-btn" data-tab="search">搜索</button>
+                <button class="tab-btn" data-tab="api">服务</button>
+                <button class="tab-btn" data-tab="notes">踩坑</button>
+            </nav>
+
+            <div class="tab-content">
+
+                <!-- ── Panel: 图层 ── -->
+                <div class="panel active" id="panel-layers">
+                    <div class="sec-title">底图切换</div>
+                    <div class="tool-group">
+                        <button class="tool-btn" data-base="vec">
+                            <span class="emoji">🗺️</span>
+                            <div><strong>矢量底图</strong><span class="sub">TDT / cia 矢量瓦片</span></div>
+                        </button>
+                        <button class="tool-btn" data-base="img">
+                            <span class="emoji">🛰️</span>
+                            <div><strong>卫星影像</strong><span class="sub">TDT / cia 影像瓦片</span></div>
+                        </button>
+                        <button class="tool-btn" data-base="ter">
+                            <span class="emoji">⛰️</span>
+                            <div><strong>地形晕渲</strong><span class="sub">TDT / cta 地形瓦片</span></div>
+                        </button>
+                        <button class="tool-btn" data-base="overlay">
+                            <span class="emoji">🏷️</span>
+                            <div><strong>卫星 + 标注叠加</strong><span class="sub">影像底图 + 注记图层</span></div>
+                        </button>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="sec-title">覆盖物</div>
+                    <div class="toggle-row">
+                        <span class="toggle-label"><span class="dot" style="background:var(--accent)"></span>城市标记</span>
+                        <label class="switch"><input type="checkbox" id="tog-markers" checked><span
+                                class="slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label"><span class="dot"
+                                style="background:var(--accent-green)"></span>圆形覆盖范围</span>
+                        <label class="switch"><input type="checkbox" id="tog-circle"><span
+                                class="slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label"><span class="dot"
+                                style="background:var(--accent-warm)"></span>折线路径</span>
+                        <label class="switch"><input type="checkbox" id="tog-line"><span class="slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label"><span class="dot"
+                                style="background:var(--accent-pink)"></span>多边形区域</span>
+                        <label class="switch"><input type="checkbox" id="tog-polygon"><span
+                                class="slider"></span></label>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="sec-title">地图状态</div>
+                    <div class="info-grid">
+                        <div>缩放级别: <span class="val" id="info-zoom">5</span></div>
+                        <div>中心坐标: <span class="val" id="info-center">--</span></div>
+                        <div>当前图层: <span class="val" id="info-type">矢量</span></div>
+                    </div>
+                </div>
+
+                <!-- ── Panel: 搜索 ── -->
+                <div class="panel" id="panel-search">
+                    <div class="api-notice">
+                        <strong>注意：</strong>搜索功能需要有效的 API Key。将代码中的 <code>YOUR_KEY_HERE</code> 替换为在 <a
+                            href="https://console.tianditu.gov.cn/" style="color:var(--accent)">天地图控制台</a> 申请的 Key。
+                    </div>
+
+                    <div class="sec-title">地名搜索</div>
+                    <div class="search-box">
+                        <input class="search-input" id="search-input" placeholder="输入地名，如：故宫、西湖" />
+                        <button class="search-go" id="search-btn">搜索</button>
+                    </div>
+                    <div class="result-list" id="search-results"></div>
+
+                    <div class="divider"></div>
+
+                    <div class="sec-title">快速定位</div>
+                    <div class="tool-group">
+                        <button class="tool-btn" id="fly-bj">
+                            <span class="emoji">📍</span>
+                            <div><strong>北京 · 天安门</strong><span class="sub">39.9087, 116.3975</span></div>
+                        </button>
+                        <button class="tool-btn" id="fly-sh">
+                            <span class="emoji">📍</span>
+                            <div><strong>上海 · 东方明珠</strong><span class="sub">31.2397, 121.4998</span></div>
+                        </button>
+                        <button class="tool-btn" id="fly-xa">
+                            <span class="emoji">📍</span>
+                            <div><strong>西安 · 大雁塔</strong><span class="sub">34.2164, 108.9631</span></div>
+                        </button>
+                        <button class="tool-btn" id="fly-cd">
+                            <span class="emoji">📍</span>
+                            <div><strong>成都 · 天府广场</strong><span class="sub">30.5728, 104.0668</span></div>
+                        </button>
+                        <button class="tool-btn" id="fly-reset">
+                            <span class="emoji">🌏</span>
+                            <div><strong>复位全览</strong><span class="sub">全国视图</span></div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ── Panel: API ── -->
+                <div class="panel" id="panel-api">
+                    <div class="sec-title">天地图服务接口</div>
+                    <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">
+                        天地图提供丰富的在线 GIS 服务，全部免费（需申请 Key）
+                    </p>
+
+                    <details class="api-card" open>
+                        <summary>瓦片服务 URL 规则</summary>
+                        <div class="api-body">
+                            <p>天地图瓦片地址格式：</p>
+                            <pre><span class="cm">// 矢量底图</span>
+http://t{s}.tianditu.gov.cn/<span class="hl">vec_w</span>/wmts?tk=YOUR_KEY
+
+<span class="cm">// 矢量注记（标注层）</span>
+http://t{s}.tianditu.gov.cn/<span class="hl">cva_w</span>/wmts?tk=YOUR_KEY
+
+<span class="cm">// 卫星影像</span>
+http://t{s}.tianditu.gov.cn/<span class="hl">img_w</span>/wmts?tk=YOUR_KEY
+
+<span class="cm">// 卫星注记</span>
+http://t{s}.tianditu.gov.cn/<span class="hl">cia_w</span>/wmts?tk=YOUR_KEY
+
+<span class="cm">// 地形晕渲</span>
+http://t{s}.tianditu.gov.cn/<span class="hl">ter_w</span>/wmts?tk=YOUR_KEY
+
+<span class="cm">// 地形注记</span>
+http://t{s}.tianditu.gov.cn/<span class="hl">cta_w</span>/wmts?tk=YOUR_KEY
+
+<span class="cm">// {s} = 0~7  8 台服务器轮询</span></pre>
+                            <p style="margin-top:8px"><code>_w</code> 后缀 = EPSG:3857（Web 墨卡托），<code>_c</code> =
+                                EPSG:4326（经纬度直投）。</p>
+                        </div>
+                    </details>
+
+                    <details class="api-card">
+                        <summary>地名搜索 API</summary>
+                        <div class="api-body">
+                            <pre><span class="cm">// GET 请求</span>
+https://api.tianditu.gov.cn/search?
+  postStr={
+    "keyWord":"故宫",
+    "level":"12",
+    "mapBound":"116,39,117,40",
+    "queryType":"1",
+    "start":"0",
+    "count":"10"
+  }
+  &type=query
+  &tk=YOUR_KEY
+
+<span class="cm">// 返回 JSON：名称、坐标、地址等</span></pre>
+                        </div>
+                    </details>
+
+                    <details class="api-card">
+                        <summary>逆地理编码（坐标→地址）</summary>
+                        <div class="api-body">
+                            <pre>https://api.tianditu.gov.cn/geocoder?
+  postStr={
+    "lon":"116.3975",
+    "lat":"39.9087",
+    "ver":"1"
+  }
+  &type="geocode"
+  &tk=YOUR_KEY
+
+<span class="cm">// 返回：formatted_address, addressComponent</span></pre>
+                        </div>
+                    </details>
+
+                    <details class="api-card">
+                        <summary>驾车路线规划</summary>
+                        <div class="api-body">
+                            <pre>https://api.tianditu.gov.cn/drive?
+  postStr={
+    "orig":"116.3975,39.9087",
+    "dest":"121.4998,31.2397",
+    "style":"0"
+  }
+  &type="drive"
+  &tk=YOUR_KEY
+
+<span class="cm">// 返回：路线坐标点、距离、时间</span></pre>
+                        </div>
+                    </details>
+
+                    <details class="api-card">
+                        <summary>公交路线规划</summary>
+                        <div class="api-body">
+                            <pre>https://api.tianditu.gov.cn/transit?
+  postStr={
+    "orig":"116.3975,39.9087",
+    "dest":"116.4818,39.9902",
+    "style":"0"
+  }
+  &type="transit"
+  &tk=YOUR_KEY</pre>
+                        </div>
+                    </details>
+
+                    <details class="api-card">
+                        <summary>静态图 API</summary>
+                        <div class="api-body">
+                            <pre><span class="cm">// 不需要 JS API，直接在 &lt;img&gt; 标签中使用</span>
+https://api.tianditu.gov.cn/staticimage?
+  center=116.3975,39.9087
+  &zoom=14
+  &width=600
+  &height=400
+  &layers=<span class="hl">vec,cva</span>
+  &tk=YOUR_KEY
+
+<span class="cm">// 适合：邮件、PDF、报表嵌入</span></pre>
+                        </div>
+                    </details>
+
+                    <div class="divider"></div>
+
+                    <div class="sec-title">与 Leaflet / OL 结合</div>
+                    <details class="api-card" open>
+                        <summary>Leaflet 接入天地图瓦片</summary>
+                        <div class="api-body">
+                            <pre><span class="cm">// 矢量底图 + 注记</span>
+<span class="hl">L.tileLayer</span>(
+  'http://t{s}.tianditu.gov.cn/vec_w/wmts?tk=YOUR_KEY&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',
+  { subdomains:'01234567', maxZoom:18 }
+).addTo(map)
+
+<span class="cm">// 注记叠加层</span>
+<span class="hl">L.tileLayer</span>(
+  'http://t{s}.tianditu.gov.cn/cva_w/wmts?tk=YOUR_KEY&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',
+  { subdomains:'01234567', maxZoom:18 }
+).addTo(map)</pre>
+                            <p style="margin-top:6px">注意 URL 中的 <code>{s}</code> <code>{z}</code> <code>{x}</code>
+                                <code>{y}</code> 是 Leaflet 模板变量，需要手动拼完整 URL。
+                            </p>
+                        </div>
+                    </details>
+
+                    <details class="api-card">
+                        <summary>OpenLayers 接入天地图瓦片</summary>
+                        <div class="api-body">
+                            <pre>new ol.layer.Tile({
+  source: new ol.source.<span class="hl">WMTS</span>({
+    url: 'http://t0.tianditu.gov.cn/vec_w/wmts?tk=YOUR_KEY',
+    layer: 'vec',
+    style: 'default',
+    matrixSet: 'w',
+    format: 'tiles',
+    tileGrid: new ol.tilegrid.<span class="hl">WMTS</span>({
+      origin: ol.extent.getTopLeft(
+        ol.proj.get('EPSG:3857').getExtent()
+      ),
+      resolutions: [...],
+      matrixIds: [...]
+    })
+  })
+})</pre>
+                            <p style="margin-top:6px">OL 接入 WMTS 要手动配 tileGrid，比较繁琐。推荐用
+                                <code>ol-wmts-capabilities</code> 插件自动解析。
+                            </p>
+                        </div>
+                    </details>
+                </div>
+
+                <!-- ── Panel: 踩坑 ── -->
+                <div class="panel" id="panel-notes">
+
+                    <details class="pf-card" open>
+                        <summary>必须申请 Key</summary>
+                        <div class="pf-card body">
+                            <p>天地图 API 必须在 <a href="https://console.tianditu.gov.cn/"
+                                    style="color:var(--accent-warm)">控制台</a> 注册并申请 Key。免费但有调用量限制：</p>
+                            <ul style="padding-left:16px;margin-top:6px;line-height:2">
+                                <li>瓦片服务：无明确限制（合理使用）</li>
+                                <li>搜索/编码：每秒 30 次，每天 10000 次</li>
+                                <li>路径规划：每秒 30 次，每天 5000 次</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <details class="pf-card">
+                        <summary>坐标系：GCJ-02 偏移</summary>
+                        <div class="pf-card body">
+                            <p>天地图瓦片基于 <code>EPSG:4326</code>（WGS-84），但标注层和搜索结果是 <code>GCJ-02</code> 坐标。叠加使用时会有微小偏移。</p>
+                            <p style="margin-top:6px">天地图自己的 JS API 已内部处理，但你用 Leaflet / OL 接入时需要注意。</p>
+                        </div>
+                    </details>
+
+                    <details class="pf-card">
+                        <summary>瓦片 URL 中的 _w 和 _c</summary>
+                        <div class="pf-card body">
+                            <p><code>vec_w</code> = Web 墨卡托投影（EPSG:3857），适用于 Leaflet / OL / Mapbox</p>
+                            <p><code>vec_c</code> = 经纬度直投（EPSG:4326），适用于 OL 4326 模式</p>
+                            <p style="margin-top:6px">绝大多数场景用 <code>_w</code>。用错会导致瓦片完全加载不出来或偏到非洲。</p>
+                        </div>
+                    </details>
+
+                    <details class="pf-card">
+                        <summary>WMTS 参数必须完整</summary>
+                        <div class="pf-card body">
+                            <p>天地图 WMTS 是严格的 RESTful 风格，参数一个都不能少：</p>
+                            <pre>http://t{s}.tianditu.gov.cn/vec_w/wmts?
+<span class="hl">SERVICE=WMTS</span>
+&<span class="hl">REQUEST=GetTile</span>
+&<span class="hl">VERSION=1.0.0</span>
+&<span class="hl">LAYER=vec</span>
+&<span class="hl">STYLE=default</span>
+&<span class="hl">TILEMATRIXSET=w</span>
+&<span class="hl">FORMAT=tiles</span>
+&<span class="hl">TILEMATRIX={z}</span>
+&<span class="hl">TILEROW={y}</span>
+&<span class="hl">TILECOL={x}</span>
+&tk=YOUR_KEY</pre>
+                            <p style="margin-top:6px">少了任何一个参数都会返回错误或空白瓦片。</p>
+                        </div>
+                    </details>
+
+                    <details class="pf-card">
+                        <summary>卫星图和标注是两个图层</summary>
+                        <div class="pf-card body">
+                            <p>天地图的卫星影像是<strong>裸图</strong>（没有路名、地名），标注在另一个图层（cia）。必须手动叠加：</p>
+                            <pre><span class="cm">// 影像底图</span>
+const imgLayer = ...    <span class="hl">// img_w</span>
+<span class="cm">// 注记叠加</span>
+const labelLayer = ...  <span class="hl">// cia_w</span>
+<span class="cm">// 两个都加到地图上</span></pre>
+                            <p style="margin-top:6px">这和高德/百度不同——它们的卫星图自带标注。</p>
+                        </div>
+                    </details>
+
+                    <details class="pf-card">
+                        <summary>HTTPS 和 HTTP 混用问题</summary>
+                        <div class="pf-card body">
+                            <p>天地图同时支持 HTTP 和 HTTPS，但<strong>部分子域名 HTTPS 证书有问题</strong>。</p>
+                            <p>建议统一用 HTTPS：</p>
+                            <pre><span class="cm">// 推荐</span>
+https://t{s}.tianditu.gov.cn/...
+
+<span class="cm">// 不推荐（混合内容警告）</span>
+http://t{s}.tianditu.gov.cn/...</pre>
+                        </div>
+                    </details>
+                </div>
+
+            </div>
+        </aside>
+
+        <!-- ════ MAP ════ -->
+        <main class="map-wrapper">
+            <div id="map"></div>
+            <div class="coords-bar">
+                <span id="coords-text">移动鼠标查看坐标</span>
+                <span id="map-info">天地图 · 矢量底图</span>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // ══════════════════════════════════════════════
+        //  这里用 Leaflet 接入天地图瓦片演示
+        //  （天地图 JS API 需要有效 Key，这里用开源方案）
+        // ══════════════════════════════════════════════
+
+        const TK = 'eebc7831ad35aa41acac125945341982' // 替换为你的天地图 Key
+        // 注意：要正常使用天地图服务，这个 Key 必须是从天地图官网申请的有效 Key
+
+        // ── 天地图瓦片 URL 模板 ──
+        function tdtUrl(type, tk) {
+            // Leaflet 使用 {s} 作为子域名占位符，subdomains 选项会自动替换多个子域名
+            // type 形如 vec_w / img_w / ter_w / cva_w / cia_w / cta_w
+            // LAYER 取 type 的前缀部分，例如 vec_w -> vec
+            return `https://t{s}.tianditu.gov.cn/${type}/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${type.split('_')[0]}&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${tk}`
+        }
+
+        // ── 创建底图图层 ──
+        const vecBase = L.tileLayer(tdtUrl('vec_w', TK), {
+            subdomains: '01234567', maxZoom: 18,
+            attribution: '&copy; <a href="https://www.tianditu.gov.cn/">天地图</a>'
+        })
+        // vecBase：矢量底图
+
+        const vecLabel = L.tileLayer(tdtUrl('cva_w', TK), {
+            subdomains: '01234567', maxZoom: 18
+        })
+        // vecLabel：矢量标注图层，需要与矢量底图配合使用
+
+        const imgBase = L.tileLayer(tdtUrl('img_w', TK), {
+            subdomains: '01234567', maxZoom: 18,
+            attribution: '&copy; <a href="https://www.tianditu.gov.cn/">天地图</a>'
+        })
+        // imgBase：卫星影像底图
+
+        const imgLabel = L.tileLayer(tdtUrl('cia_w', TK), {
+            subdomains: '01234567', maxZoom: 18
+        })
+        // imgLabel：卫星影像注记层，单独叠加在卫星底图上
+
+        const terBase = L.tileLayer(tdtUrl('ter_w', TK), {
+            subdomains: '01234567', maxZoom: 18,
+            attribution: '&copy; <a href="https://www.tianditu.gov.cn/">天地图</a>'
+        })
+        // terBase：地形晕渲底图
+
+        const terLabel = L.tileLayer(tdtUrl('cta_w', TK), {
+            subdomains: '01234567', maxZoom: 18
+        })
+        // terLabel：地形注记图层，用于和地形底图叠加
+
+        // ── 创建地图 ──
+        const map = L.map('map', {
+            center: [35.86, 104.19],
+            zoom: 5,
+            zoomControl: true,
+            layers: [vecBase, vecLabel]
+        })
+        // map 实例绑定 #map 容器，并初始化为天地图矢量底图 + 标注
+
+        // ── 当前图层状态 ──
+        let currentLayers = [vecBase, vecLabel]
+        let currentName = '矢量底图'
+
+        function switchBase(name, layers) {
+            currentLayers.forEach(l => map.removeLayer(l))
+            layers.forEach(l => l.addTo(map))
+            currentLayers = layers
+            currentName = name
+            document.getElementById('map-info').textContent = `天地图 · ${name}`
+        }
+        // switchBase 为底图切换函数：先移除当前图层，再添加新的图层组，并更新右下角提示文字
+
+        // ══════════════════════════════════════════════
+        //  覆盖物
+        // ══════════════════════════════════════════════
+        const cityData = [
+            { lat: 39.9042, lng: 116.3975, name: '北京', desc: '天安门广场，政治文化中心' },
+            { lat: 31.2397, lng: 121.4998, name: '上海', desc: '东方明珠，国际金融中心' },
+            { lat: 23.1291, lng: 113.2644, name: '广州', desc: '广州塔，千年商都' },
+            { lat: 22.5431, lng: 114.0579, name: '深圳', desc: '华强北，科技创新之都' },
+            { lat: 30.5728, lng: 104.0668, name: '成都', desc: '天府广场，天府之国' },
+            { lat: 34.2164, lng: 108.9631, name: '西安', desc: '大雁塔，十三朝古都' },
+            { lat: 29.5630, lng: 106.5516, name: '重庆', desc: '解放碑，山城雾都' },
+            { lat: 36.0653, lng: 120.3825, name: '青岛', desc: '栈桥，帆船之都' },
+        ]
+        // cityData 为城市标记数据，包含经纬度、名称和描述信息
+
+        const markerGroup = L.layerGroup()
+        cityData.forEach(c => {
+            const marker = L.marker([c.lat, c.lng])
+                .bindPopup(`
+      <div style="font-weight:600;color:#0ea5e9;font-size:14px;margin-bottom:4px">${c.name}</div>
+      <div style="color:#9ca3af;font-size:12px">${c.desc}</div>
+      <div style="color:#6b7280;font-size:11px;margin-top:4px;font-family:'JetBrains Mono',monospace">
+        ${c.lat.toFixed(4)}, ${c.lng.toFixed(4)}
+      </div>
+    `)
+            markerGroup.addLayer(marker)
+        })
+        markerGroup.addTo(map)
+        // markerGroup 包含多个城市点标记，并绑定弹窗信息
+
+        // 圆形覆盖范围
+        const circleGroup = L.layerGroup([
+            L.circle([39.90, 116.40], {
+                radius: 80000, color: '#0ea5e9', fillColor: '#0ea5e9',
+                fillOpacity: 0.08, weight: 1.5, dashArray: '6,6'
+            }),
+            L.circle([31.24, 121.50], {
+                radius: 60000, color: '#0ea5e9', fillColor: '#0ea5e9',
+                fillOpacity: 0.08, weight: 1.5, dashArray: '6,6'
+            })
+        ])
+        // circleGroup 为圆形覆盖范围图层，用于显示区域影响范围
+
+        // 折线路径
+        const lineGroup = L.layerGroup([
+            L.polyline([
+                [39.90, 116.40], [36.06, 120.38], [31.24, 121.50], [23.13, 113.26]
+            ], {
+                color: '#22c55e', weight: 3, dashArray: '10,8', opacity: 0.7
+            })
+        ])
+        // lineGroup 为折线路径图层，用于演示不同点之间的连线
+
+        // 多边形区域
+        const polyGroup = L.layerGroup([
+            L.polygon([
+                [34.27, 108.95], [39.90, 116.40], [31.24, 121.50], [23.13, 113.26], [30.57, 104.07]
+            ], {
+                color: '#ec4899', fillColor: '#ec4899',
+                fillOpacity: 0.08, weight: 1.5
+            })
+        ])
+        // polyGroup 为多边形区域图层，演示面要素的绘制和样式
+
+        // ══════════════════════════════════════════════
+        //  事件绑定
+        // ══════════════════════════════════════════════
+
+        // Tab 切换
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'))
+                btn.classList.add('active')
+                document.getElementById('panel-' + btn.dataset.tab).classList.add('active')
+                setTimeout(() => map.invalidateSize(), 50)
+            })
+        })
+        // 切换侧边栏选项卡后通知 Leaflet 更新地图大小，防止地图显示错位
+
+        // 底图切换
+        document.querySelectorAll('[data-base]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const type = btn.dataset.base
+                if (type === 'vec') switchBase('矢量底图', [vecBase, vecLabel])
+                if (type === 'img') switchBase('卫星影像', [imgBase, imgLabel])
+                if (type === 'ter') switchBase('地形晕渲', [terBase, terLabel])
+                if (type === 'overlay') switchBase('卫星+标注', [imgBase, imgLabel])
+            })
+        })
+
+        // 覆盖物开关
+        document.getElementById('tog-markers').onchange = e =>
+            e.target.checked ? markerGroup.addTo(map) : map.removeLayer(markerGroup)
+        document.getElementById('tog-circle').onchange = e =>
+            e.target.checked ? circleGroup.addTo(map) : map.removeLayer(circleGroup)
+        document.getElementById('tog-line').onchange = e =>
+            e.target.checked ? lineGroup.addTo(map) : map.removeLayer(lineGroup)
+        document.getElementById('tog-polygon').onchange = e =>
+            e.target.checked ? polyGroup.addTo(map) : map.removeLayer(polyGroup)
+        // 通过 checkbox 控制不同覆盖物图层是否添加到地图上
+
+        // 视角跳转
+        document.getElementById('fly-bj').onclick = () =>
+            map.flyTo([39.9042, 116.3975], 14, { duration: 1.5 })
+        document.getElementById('fly-sh').onclick = () =>
+            map.flyTo([31.2397, 121.4998], 14, { duration: 1.5 })
+        document.getElementById('fly-xa').onclick = () =>
+            map.flyTo([34.2164, 108.9631], 14, { duration: 1.5 })
+        document.getElementById('fly-cd').onclick = () =>
+            map.flyTo([30.5728, 104.0668], 14, { duration: 1.5 })
+        document.getElementById('fly-reset').onclick = () =>
+            map.flyTo([35.86, 104.19], 5, { duration: 1.5 })
+
+        // 地名搜索（调用天地图 API）
+        document.getElementById('search-btn').onclick = async () => {
+            const keyword = document.getElementById('search-input').value.trim()
+            if (!keyword) return
+
+            const results = document.getElementById('search-results')
+            results.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:8px">搜索中...</div>'
+
+            try {
+                const postStr = JSON.stringify({
+                    keyWord: keyword,//搜索的关键字
+                    level: map.getZoom().toString(),// 目前查询的级别
+                    mapBound: `${map.getBounds().getWest()},${map.getBounds().getSouth()},${map.getBounds().getEast()},${map.getBounds().getNorth()}`,// 地图视野范围(“minx,miny,maxx,maxy”)
+                    queryType: 2,
+                    start: '0',
+                    count: '10'
+                })
+                // postStr 包含搜索关键字、当前地图范围、结果数量等参数
+
+                const resp = await fetch(`https://api.tianditu.gov.cn/v2/search?postStr=${encodeURIComponent(postStr)}&type=query&tk=${TK}`)
+                // 注意：天地图搜索接口要求使用 HTTPS，且 postStr 参数需要 URL 编码
+                const data = await resp.json()
+
+                if (data.pois && data.pois.length > 0) {
+                    results.innerHTML = data.pois.map(p => `
+        <div class="result-item" data-lat="${p.lonlat.split(',')[1]}" data-lng="${p.lonlat.split(',')[0]}" data-name="${p.name}">
+          <div class="name">${p.name}</div>
+          <div class="addr">${p.address || p.adminName || ''}</div>
+          <div class="coord">${p.lonlat.split(',')[1]}, ${p.lonlat.split(',')[0]}</div>
+        </div>
+      `).join('')
+
+                    results.querySelectorAll('.result-item').forEach(item => {
+                        item.onclick = () => {
+                            const lat = parseFloat(item.dataset.lat)
+                            const lng = parseFloat(item.dataset.lng)
+                            map.flyTo([lat, lng], 15, { duration: 1 })
+                            L.popup()
+                                .setLatLng([lat, lng])
+                                .setContent(`<div style="font-weight:600;color:#0ea5e9">${item.dataset.name}</div>`)
+                                .openOn(map)
+                        }
+                    })
+                } else {
+                    results.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:8px">未找到结果</div>'
+                }
+            } catch (e) {
+                results.innerHTML = `<div style="color:#ef4444;font-size:12px;padding:8px">请求失败：${e.message}<br>请确认 Key 是否有效</div>`
+            }
+        }
+        // 搜索完成后将结果渲染为列表，点击结果会飞到对应位置并打开弹窗
+
+        document.getElementById('search-input').onkeydown = e => {
+            if (e.key === 'Enter') document.getElementById('search-btn').click()
+        }
+        // 回车也可以触发搜索按钮，增加输入框体验
+
+        // 坐标追踪
+        map.on('mousemove', e => {
+            document.getElementById('coords-text').textContent =
+                `${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`
+        })
+
+        // 状态更新
+        function updateInfo() {
+            const c = map.getCenter()
+            document.getElementById('info-zoom').textContent = map.getZoom()
+            document.getElementById('info-center').textContent = `${c.lat.toFixed(2)}, ${c.lng.toFixed(2)}`
+        }
+        map.on('zoomend moveend', updateInfo)
+        updateInfo()
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>D3 第一个例子</title>
+    <style>
+        .bar {
+            background: #4e79a7;
+            margin: 2px 0;
+            color: white;
+            padding: 4px 8px;
+            font: 14px sans-serif;
+            transition: background 0.2s;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="list"></div>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        const data = ['苹果', '香蕉', '橘子', '葡萄'];
+
+        // 一行搞定 enter + update + exit
+        d3.select('#chart')
+            .selectAll('div')
+            .data(data)
+            .join(
+                enter => enter.append('div').attr('class', 'bar new'),
+                update => update.attr('class', 'bar updated'),
+                exit => exit.remove()
+            )
+            .style('width', d => d * 5 + 'px')
+            .text(d => d);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>D3 第一个例子</title>
+    <style>
+
+    </style>
+</head>
+
+<body>
+    <div id="chart"></div>
+    <div id="chart2"></div>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        // 用 div 画柱状图（之前入门的例子就是这种）
+        d3.select('#chart')
+            .selectAll('div')
+            .data([30, 80, 45, 60, 20])
+            .join('div')
+            .style('width', d => d * 5 + 'px')
+            .style('height', '30px')
+            .style('background', '#4e79a7')
+            .style('margin', '2px 0')
+            .style('border-radius', '4px')
+            // .style('text-align','right')
+            .text(d => d);
+
+        // 用 HTML 做表格热力图
+        const gridData = [
+            { value: 10 }, { value: 30 }, { value: 55 }, { value: 70 }, { value: 90 },
+            { value: 20 }, { value: 40 }, { value: 65 }, { value: 80 }, { value: 95 }
+        ];
+
+        d3.select('#chart2')
+            .selectAll('div')
+            .data(gridData)
+            .join('div')
+            .style('display', 'inline-block')
+            .style('width', '40px')
+            .style('height', '40px')
+            .style('background', d => d3.interpolateReds(d.value / 100))
+            .style('margin', '1px')
+            .style('line-height', '40px')
+            .style('text-align', 'center')
+            .style('font-size', '11px')
+            .text(d => d.value);
+
+
+    </script>
+</body>
+
+</html>

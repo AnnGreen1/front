@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <title>G2 入门</title>
+    <style>
+        #container {
+            width: 600px;
+            height: 400px;
+            margin: 40px auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container"></div>
+    <script src="https://unpkg.com/@antv/g2/dist/g2.min.js"></script>
+    <script>
+        // 1. 创建 Chart 实例
+        const chart = new G2.Chart({
+            container: 'container',
+            autoFit: true
+        });
+
+        // 2. 声明式描述图表
+        chart.options({
+            type: 'interval',
+            data: [
+                { category: '搜索引擎', value: 35 },
+                { category: '直接访问', value: 20 },
+                { category: '邮件营销', value: 15 },
+                { category: '联盟广告', value: 18 },
+                { category: '视频广告', value: 12 }
+            ],
+            encode: { y: 'value', color: 'category' },
+            transform: [{ type: 'stackY' }],       // 堆叠
+            coordinate: { type: 'theta', innerRadius: 0.5 },  // theta 坐标 + 内半径（环形图）
+            style: { stroke: '#fff', lineWidth: 2 },
+            legend: { color: { position: 'right' } },
+            labels: [{
+                text: 'category',
+                style: { fontSize: 12, fontWeight: 'bold' }
+            }, {
+                text: (d) => `${d.value}%`,
+                style: { fontSize: 10, dy: 14 }
+            }],
+            interaction: { elementHighlight: true }   // 点击高亮
+        });
+
+        // 3. 渲染
+        chart.render();
+    </script>
+</body>
+
+</html>

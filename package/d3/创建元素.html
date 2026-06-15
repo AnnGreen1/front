@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>D3 第一个例子</title>
+</head>
+
+<body>
+    <div id="chart">
+        <div>test</div>
+    </div>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        // append：在选中元素内部追加子元素
+        d3.select('#chart')
+            .append('p')
+            .text('Hello D3');
+
+        // insert：在指定位置插入
+        // d3.select('#chart')
+        //     .insert('p', ':first-child')
+        //     .text('我在最前面');
+    </script>
+</body>
+
+</html>

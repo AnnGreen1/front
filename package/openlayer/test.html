@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenLayers 基本使用</title>
+    <!-- OpenLayers -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@10.5.0/ol.css">
+    <script src="https://cdn.jsdelivr.net/npm/ol@10.5.0/dist/ol.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #0a0f1e;
+            --surface: #111827;
+            --surface-2: #1a2236;
+            --surface-3: #1f2a42;
+            --accent: #f97316;
+            --accent-cyan: #22d3ee;
+            --accent-green: #34d399;
+            --accent-pink: #f472b6;
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --border: rgba(255, 255, 255, 0.06);
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ── Layout ── */
+        .app {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 340px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-head {
+            padding: 24px 20px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--accent);
+            background: rgba(249, 115, 22, .08);
+            border: 1px solid rgba(249, 115, 22, .2);
+            padding: 3px 10px;
+            border-radius: 100px;
+            margin-bottom: 12px;
+        }
+
+        .tag .dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 6px var(--accent);
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .3
+            }
+        }
+
+        .sidebar-head h1 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            background: linear-gradient(135deg, #e5e7eb, #f97316);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-head p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Tabs */
+        .tab-nav {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 11px 0;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-family: 'Noto Sans SC', sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+            position: relative;
+            transition: color .25s;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-secondary);
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 25%;
+            width: 50%;
+            height: 2px;
+            background: var(--accent);
+            border-radius: 2px 2px 0 0;
+        }
+
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .tab-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .tab-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .tab-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, .06);
+            border-radius: 4px;
+        }
+
+        .panel {
+            display: none;
+            padding: 20px;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        /* Section */
+        .sec-title {
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sec-title::before {
+            content: '';
+            width: 3px;
+            height: 12px;
+            border-radius: 2px;
+            background: var(--accent);
+        }
+
+        /* Toggles */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .toggle-row:last-child {
+            border-bottom: none;
+        }
+
+        .toggle-label {
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-label .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        .switch {
+            position: relative;
+            width: 38px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch .slider {
+            position: absolute;
+            inset: 0;
+            background: var(--surface-3);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background .3s;
+        }
+
+        .switch .slider::before {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            left: 3px;
+            top: 3px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            transition: all .3s;
+        }
+
+        .switch input:checked+.slider {
+            background: rgba(249, 115, 22, .18);
+        }
+
+        .switch input:checked+.slider::before {
+            transform: translateX(18px);
+            background: var(--accent);
+        }
+
+        /* Radio */
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .radio-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: var(--surface-2);
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all .2s;
+        }
+
+        .radio-row:hover {
+            border-color: var(--border);
+        }
+
+        .radio-row input {
+            display: none;
+        }
+
+        .radio-dot {
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            border: 2px solid var(--text-muted);
+            flex-shrink: 0;
+            transition: all .2s;
+        }
+
+        .radio-row input:checked~.radio-dot {
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 8px rgba(249, 115, 22, .35);
+        }
+
+        .radio-text {
+            font-size: 13px;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 16px 0;
+        }
+
+        /* Tool buttons */
+        .tool-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            margin-bottom: 14px;
+        }
+
+        .tool-btn {
+            width: 100%;
+            padding: 9px 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Noto Sans SC', sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all .2s;
+            text-align: left;
+        }
+
+        .tool-btn:hover {
+            background: rgba(249, 115, 22, .06);
+            border-color: rgba(249, 115, 22, .15);
+        }
+
+        .tool-btn.active-mode {
+            background: rgba(249, 115, 22, .1);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .measure-result {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--accent-green);
+            padding: 10px;
+            background: rgba(52, 211, 153, .05);
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        .info-grid {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 2;
+        }
+
+        .info-grid .val {
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Comparison table */
+        .cmp-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--surface-2);
+            border-radius: 8px;
+            overflow: hidden;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .cmp-table th {
+            text-align: left;
+            padding: 8px 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, .02);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .cmp-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, .03);
+            vertical-align: top;
+            line-height: 1.5;
+        }
+
+        .cmp-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .cmp-table code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            background: rgba(249, 115, 22, .08);
+            color: var(--accent);
+            padding: 1px 5px;
+            border-radius: 3px;
+        }
+
+        /* Pitfall cards */
+        .pitfall-card {
+            margin-bottom: 6px;
+            background: var(--surface-2);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .pitfall-card summary {
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color .2s;
+        }
+
+        .pitfall-card summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .pitfall-card summary::before {
+            content: '▸';
+            font-size: 11px;
+            color: var(--accent);
+            transition: transform .2s;
+        }
+
+        .pitfall-card[open] summary::before {
+            transform: rotate(90deg);
+        }
+
+        .pitfall-card[open] summary {
+            color: var(--accent);
+        }
+
+        .pitfall-body {
+            padding: 0 14px 14px;
+            font-size: 12px;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+
+        .pitfall-body code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            background: rgba(249, 115, 22, .08);
+            color: var(--accent);
+            padding: 1px 5px;
+            border-radius: 3px;
+        }
+
+        .pitfall-body pre {
+            margin-top: 8px;
+            padding: 10px;
+            background: #080d1a;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #9ca3af;
+        }
+
+        .pitfall-body pre .hl {
+            color: var(--accent);
+        }
+
+        .pitfall-body pre .cm {
+            color: #4b5563;
+            font-style: italic;
+        }
+
+        /* Map area */
+        .map-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ── OL overrides ── */
+        .ol-control button {
+            background: var(--surface) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 6px !important;
+            font-size: 16px !important;
+        }
+
+        .ol-control button:hover {
+            background: var(--surface-2) !important;
+        }
+
+        .ol-control {
+            background: none !important;
+        }
+
+        .ol-attribution {
+            background: rgba(10, 15, 30, .8) !important;
+            border-radius: 6px 0 0 0 !important;
+        }
+
+        .ol-attribution a {
+            color: var(--text-muted) !important;
+        }
+
+        .ol-attribution span {
+            color: var(--text-muted) !important;
+        }
+
+        /* OL Popup */
+        .ol-popup {
+            position: absolute;
+            background: rgba(17, 24, 39, .95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(249, 115, 22, .25);
+            border-radius: 10px;
+            padding: 0;
+            min-width: 200px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .5);
+        }
+
+        .ol-popup::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: rgba(249, 115, 22, .25);
+        }
+
+        .popup-inner {
+            padding: 14px 18px;
+        }
+
+        .popup-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .popup-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .popup-close:hover {
+            color: var(--text-primary);
+        }
+
+        /* Coords display */
+        .coords-box {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            background: rgba(17, 24, 39, .85);
+            backdrop-filter: blur(8px);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            pointer-events: none;
+        }
+
+        /* Responsive */
+        @media(max-width:800px) {
+            .app {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                max-height: 45vh;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .map-wrapper {
+                flex: 1;
+                min-height: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+        <!-- ════ SIDEBAR ════ -->
+        <aside class="sidebar">
+            <div class="sidebar-head">
+                <div class="tag"><span class="dot"></span> INTERACTIVE DEMO</div>
+                <h1>OpenLayers 入门指南</h1>
+                <p>功能最全的开源 JS 地图库，企业级 GIS 首选</p>
+            </div>
+            <nav class="tab-nav">
+                <button class="tab-btn active" data-tab="layers">图层</button>
+                <button class="tab-btn" data-tab="tools">工具</button>
+                <button class="tab-btn" data-tab="compare">对比</button>
+                <button class="tab-btn" data-tab="notes">踩坑</button>
+            </nav>
+            <div class="tab-content">
+
+                <!-- ── Panel: 图层 ── -->
+                <div class="panel active" id="panel-layers">
+                    <div class="sec-title">矢量图层</div>
+                    <div class="toggle-row">
+                        <span class="toggle-label"><span class="dot" style="background:var(--accent)"></span>城市标记</span>
+                        <label class="switch"><input type="checkbox" id="tog-markers" checked><span
+                                class="slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label"><span class="dot"
+                                style="background:var(--accent-green)"></span>航线路径</span>
+                        <label class="switch"><input type="checkbox" id="tog-route"><span class="slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label"><span class="dot"
+                                style="background:var(--accent-pink)"></span>区域多边形</span>
+                        <label class="switch"><input type="checkbox" id="tog-polygon"><span
+                                class="slider"></span></label>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="sec-title">底图选择</div>
+                    <div class="radio-group">
+                        <label class="radio-row"><input type="radio" name="base" value="dark" checked><span
+                                class="radio-dot"></span><span class="radio-text">CartoDB Dark</span></label>
+                        <label class="radio-row"><input type="radio" name="base" value="osm"><span
+                                class="radio-dot"></span><span class="radio-text">OpenStreetMap</span></label>
+                        <label class="radio-row"><input type="radio" name="base" value="satellite"><span
+                                class="radio-dot"></span><span class="radio-text">ESRI 卫星影像</span></label>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="sec-title">地图状态</div>
+                    <div class="info-grid">
+                        <div>缩放级别: <span class="val" id="info-zoom">5</span></div>
+                        <div>中心坐标: <span class="val" id="info-center">--</span></div>
+                        <div>旋转角度: <span class="val" id="info-rotation">0°</span></div>
+                    </div>
+                </div>
+                <!-- ── Panel: 工具 ── -->
+                <div class="panel" id="panel-tools">
+                    <div class="sec-title">绘制工具</div>
+                    <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">选择后在地图上绘制，OL 内置 Draw/Snap 交互
+                    </p>
+                    <div class="tool-group">
+                        <button class="tool-btn" data-draw="Point">📍 画点</button>
+                        <button class="tool-btn" data-draw="LineString">〰️ 画线</button>
+                        <button class="tool-btn" data-draw="Polygon">🔷 画多边形</button>
+                        <button class="tool-btn" data-draw="Circle">⭕ 画圆</button>
+                        <button class="tool-btn" id="btn-draw-clear">🗑️ 清除绘制</button>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="sec-title">视角跳转</div>
+                    <div class="tool-group">
+                        <button class="tool-btn" id="fly-bj">📍 飞到北京</button>
+                        <button class="tool-btn" id="fly-sh">📍 飞到上海</button>
+                        <button class="tool-btn" id="fly-cd">📍 飞到成都</button>
+                        <button class="tool-btn" id="fly-reset">🌏 复位全览</button>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="sec-title">OL 特有能力</div>
+                    <div class="tool-group">
+                        <button class="tool-btn" id="btn-rotate">🔄 旋转地图 45°</button>
+                        <button class="tool-btn" id="btn-tilt">📐 缩小 + 倾斜感知</button>
+                    </div>
+                </div>
+                <!-- ── Panel: 对比 ── -->
+                <div class="panel" id="panel-compare">
+                    <div class="sec-title">OpenLayers vs Leaflet</div>
+                    <table class="cmp-table">
+                        <thead>
+                            <tr>
+                                <th>能力</th>
+                                <th>OpenLayers</th>
+                                <th>Leaflet</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>创建地图</td>
+                                <td><code>new ol.Map({target, layers, view})</code></td>
+                                <td><code>L.map('id')</code></td>
+                            </tr>
+                            <tr>
+                                <td>添加图层</td>
+                                <td><code>map.addLayer(layer)</code></td>
+                                <td><code>layer.addTo(map)</code></td>
+                            </tr>
+                            <tr>
+                                <td>视图控制</td>
+                                <td>独立 <code>ol.View</code> 对象</td>
+                                <td>内置在 map 上</td>
+                            </tr>
+                            <tr>
+                                <td>投影支持</td>
+                                <td>原生 proj4</td>
+                                <td>靠插件</td>
+                            </tr>
+                            <tr>
+                                <td>绘制交互</td>
+                                <td>内置 Draw/Modify/Snap</td>
+                                <td>靠 leaflet-draw 插件</td>
+                            </tr>
+                            <tr>
+                                <td>矢量瓦片</td>
+                                <td>原生 MVT 支持</td>
+                                <td>插件质量一般</td>
+                            </tr>
+                            <tr>
+                                <td>样式系统</td>
+                                <td>强大（Style/Stroke/Fill/Text）</td>
+                                <td>简单（CSS/路径选项）</td>
+                            </tr>
+                            <tr>
+                                <td>包体积</td>
+                                <td>~400KB（较重）</td>
+                                <td>~42KB（极轻）</td>
+                            </tr>
+                            <tr>
+                                <td>学习曲线</td>
+                                <td>中等偏高</td>
+                                <td>低</td>
+                            </tr>
+                            <tr>
+                                <td>设计哲学</td>
+                                <td>容器管理（map.addLayer）</td>
+                                <td>对象自治（layer.addTo）</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="divider"></div>
+                    <div class="sec-title">核心概念映射</div>
+                    <table class="cmp-table">
+                        <thead>
+                            <tr>
+                                <th>OpenLayers</th>
+                                <th>对应 Leaflet</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>ol/Map</code></td>
+                                <td><code>L.map()</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>ol/View</code></td>
+                                <td>内置在 L.map 的 setView 中</td>
+                            </tr>
+                            <tr>
+                                <td><code>ol/layer/Tile</code></td>
+                                <td><code>L.tileLayer()</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>ol/layer/Vector</code></td>
+                                <td><code>L.geoJSON()</code> 或 marker</td>
+                            </tr>
+                            <tr>
+                                <td><code>ol/source/OSM</code></td>
+                                <td>OpenStreetMap 瓦片 URL</td>
+                            </tr>
+                            <tr>
+                                <td><code>ol/source/Vector</code></td>
+                                <td>数据源（GeoJSON 等）</td>
+                            </tr>
+                            <tr>
+                                <td><code>ol/Feature</code> + <code>ol/geom/Point</code></td>
+                                <td><code>L.marker()</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>ol/Overlay</code></td>
+                                <td><code>L.popup()</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>ol/style/Style</code></td>
+                                <td>GeoJSON 的 style 选项</td>
+                            </tr>
+                            <tr>
+                                <td><code>ol/interaction/Draw</code></td>
+                                <td>leaflet-draw 插件</td>
+                            </tr>
+                            <tr>
+                                <td><code>ol/proj.fromLonLat()</code></td>
+                                <td>直接用 [lat, lng]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- ── Panel: 踩坑 ── -->
+                <div class="panel" id="panel-notes">
+
+                    <details class="pitfall-card" open>
+                        <summary>坐标系统：EPSG:3857 vs 4326</summary>
+                        <div class="pitfall-body">
+                            <p>OpenLayers 内部用 <code>EPSG:3857</code>（Web 墨卡托），所有坐标都要转换：</p>
+                            <pre><span class="cm">// 经纬度 → OL 坐标（必须转！）</span>
+<span class="hl">import { fromLonLat } from 'ol/proj'</span>
+const pos = <span class="hl">fromLonLat</span>([116.40, 39.90])
+<span class="cm">// [12953935.0, 4852023.0] — 不是经纬度了！</span>
+<span class="cm">// OL 坐标 → 经纬度</span>
+<span class="hl">import { toLonLat } from 'ol/proj'</span>
+const [lng, lat] = <span class="hl">toLonLat</span>(olCoord)</pre>
+                            <p style="margin-top:6px">忘记 <code>fromLonLat</code> 是新手第一大坑，标记会跑到非洲去。</p>
+                        </div>
+                    </details>
+                    <details class="pitfall-card">
+                        <summary>View 独立于 Map</summary>
+                        <div class="pitfall-body">
+                            <p>Leaflet 的视图控制在 map 上，OL 要通过独立的 <code>View</code> 对象：</p>
+                            <pre><span class="cm">// 创建 View</span>
+const view = new <span class="hl">ol.View</span>({
+  center: <span class="hl">ol.proj.fromLonLat</span>([104, 35]),
+  zoom: 5
+})
+
+<span class="cm">// View 的方法</span>
+view.animate({ zoom: 12, duration: 1000 })   <span class="cm">// 动画</span>
+view.setCenter(ol.proj.fromLonLat([121, 31])) <span class="cm">// 跳转</span>
+view.setRotation(Math.PI / 4)                 <span class="cm">// 旋转</span></pre>
+                        </div>
+                    </details>
+                    <details class="pitfall-card">
+                        <summary>Feature 必须被 Source 包裹</summary>
+                        <div class="pitfall-body">
+                            <p>OL 是四层结构，比 Leaflet 多两层：</p>
+                            <pre><span class="cm">// OL 四层：Map → Layer → Source → Feature</span>
+new ol.Map({
+  layers: [
+    new ol.layer.Vector({              <span class="cm">// Layer</span>
+      source: new ol.source.Vector({   <span class="cm">// Source</span>
+        features: [
+          new ol.Feature({             <span class="cm">// Feature</span>
+            geometry: new ol.geom.Point(ol.proj.fromLonLat([116, 39]))
+          })
+        ]
+      })
+    })
+  ]
+})
+
+<span class="cm">// Leaflet 两层：Map → Marker</span>
+L.marker([39, 116]).addTo(map)</pre>
+                            <p style="margin-top:6px">OL 更啰嗦但更灵活——一个 Source 可以被多个 Layer 引用。</p>
+                        </div>
+                    </details>
+                    <details class="pitfall-card">
+                        <summary>弹窗用 Overlay，不是 Popup</summary>
+                        <div class="pitfall-body">
+                            <p>OL 没有内置 Popup 类，用 <code>ol.Overlay</code> 挂载 DOM 元素：</p>
+                            <pre>const popupEl = document.getElementById('popup')
+const overlay = new <span class="hl">ol.Overlay</span>({
+  element: popupEl,
+  positioning: 'bottom-center',
+  offset: [0, -10]
+})
+map.addOverlay(overlay)
+
+<span class="cm">// 点击时设置位置</span>
+map.on('click', e => {
+  overlay.setPosition(e.coordinate)
+  popupEl.querySelector('.desc').textContent = e.coordinate
+})</pre>
+                        </div>
+                    </details>
+                    <details class="pitfall-card">
+                        <summary>样式函数 vs 静态样式</summary>
+                        <div class="pitfall-body">
+                            <p>静态样式所有 feature 一个样，样式函数可以按属性不同显示不同：</p>
+                            <pre><span class="cm">// 样式函数：根据属性动态返回样式</span>
+vectorLayer.setStyle((feature) => {
+  const value = feature.get('value')
+  return new ol.style.Style({
+    fill: new ol.style.Fill({
+      color: value > 80 ? <span class="hl">'rgba(34,211,153,0.3)'</span> : <span class="hl">'rgba(249,115,22,0.3)'</span>
+    }),
+    stroke: new ol.style.Stroke({ color: '#22d3ee', width: 1.5 }),
+    text: new ol.style.Text({
+      text: feature.get('name'),
+      fill: new ol.style.Fill({ color: '#e5e7eb' }),
+      font: '13px Noto Sans SC'
+    })
+  })
+})</pre>
+                        </div>
+                    </details>
+                    <details class="pitfall-card">
+                        <summary>GCJ-02 偏移同样存在</summary>
+                        <div class="pitfall-body">
+                            <p>和 Leaflet 一样，国内瓦片有偏移。OL 的方案：</p>
+                            <pre><span class="cm">// 用 ol-ext 插件</span>
+import 'ol-ext/dist/ol-ext.css'
+import BingMaps from 'ol/source/BingMaps'
+
+<span class="cm">// 或用自定义 TileGrid + 偏移修正</span>
+<span class="cm">// 推荐：直接用 EPSG:4326 的天地图瓦片 + proj4 纠偏</span></pre>
+                            <p style="margin-top:6px">比 Leaflet 更麻烦，因为 OL 坐标系复杂。新手建议先用 CartoDB/OSM 等无偏底图。</p>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </aside>
+        <!-- ════ MAP ════ -->
+        <main class="map-wrapper">
+            <div id="map"></div>
+            <div id="popup" class="ol-popup" style="display:none">
+                <button class="popup-close" id="popup-close">&times;</button>
+                <div class="popup-inner">
+                    <div class="popup-title" id="popup-title">--</div>
+                    <div class="popup-desc" id="popup-desc">--</div>
+                </div>
+            </div>
+            <div class="coords-box" id="coords-box">移动鼠标查看坐标</div>
+        </main>
+    </div>
+    <script>
+        // ══════════════════════════════════════════════
+        //  核心：解构常用 OL 类（全局 ol 命名空间）
+        //  这里不是新建对象，而是从 ol 全局对象里取出常用类，方便后续直接使用
+        // ══════════════════════════════════════════════
+        const { Map, View } = ol
+        // Map：地图容器，负责渲染所有图层、交互、overlay 和视图控制
+        // View：地图视图主体，管理中心点、缩放、旋转、最小/最大缩放等
+
+        const { Tile: TileLayer, Vector: VectorLayer } = ol.layer
+        // TileLayer：瓦片图层，用于加载影像/底图等瓦片数据
+        // VectorLayer：矢量图层，用于显示点、线、面等矢量要素
+
+        const { OSM, XYZ, Vector: VectorSource } = ol.source
+        // OSM：OpenStreetMap 瓦片源，使用 OL 内置的 OSM 提供器
+        // XYZ：通用瓦片源，可通过 URL 模板加载任意瓦片服务
+        // VectorSource：矢量数据源，承载 Feature 数组供 VectorLayer 渲染
+
+        const { fromLonLat, toLonLat } = ol.proj
+        // fromLonLat：将经纬度 [lon, lat] 转换成 OL 内部坐标（Web Mercator）
+        // toLonLat：将 OL 内部坐标转换回经纬度，通常用于 UI 显示
+
+        const { Point, LineString, Polygon, Circle: CircleGeom, MultiPoint } = ol.geom
+        // Point：点几何，表示单个坐标点
+        // LineString：折线几何，表示路径或线段
+        // Polygon：多边形几何，表示面
+        // CircleGeom：圆几何，名为 CircleGeom 以避免与样式 Circle 冲突
+        // MultiPoint：多点几何，表示多个点的集合
+
+        const { Feature } = ol
+        // Feature：矢量要素对象，包含 geometry（几何）和属性
+
+        const { Style, Stroke, Fill, Circle: CircleStyle, Text, Icon } = ol.style
+        // Style：矢量要素样式容器
+        // Stroke：线样式
+        // Fill：填充样式
+        // CircleStyle：点样式，常用于 marker
+        // Text：文字样式，用于要素标签
+        // Icon：图标样式，本 demo 未使用
+
+        const { Draw, Snap, Modify } = ol.interaction
+        // Draw：绘制交互，用于在地图上画点/线/面/圆
+        // Snap：吸附交互，绘制时自动与已有要素对齐
+        // Modify：修改已有要素，拖拽顶点调整形状
+
+        const { Overlay } = ol
+        // Overlay：DOM 覆盖物，OL 里用于显示自定义弹窗或标签
+
+        const { easeIn, easeOut, linear } = ol.easing
+        // easeIn/easeOut/linear：视图动画缓动函数，用于飞行动画效果
+
+        // ══════════════════════════════════════════════
+        //  1. 底图图层
+        // ══════════════════════════════════════════════
+        const darkLayer = new TileLayer({
+            source: new XYZ({
+                url: 'https://{a-d}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+                attributions: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+            })
+        })
+        // CartoDB Dark：深色底图，适合夜间或高对比展示
+
+        const osmLayer = new TileLayer({
+            source: new OSM()
+        })
+        // OSM：OpenStreetMap 底图，常用的开源地图服务
+
+        const satLayer = new TileLayer({
+            source: new XYZ({
+                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                attributions: '&copy; Esri',
+                maxZoom: 19
+            })
+        })
+        // ESRI 卫星影像底图，适合查看真实卫星图像
+
+        const baseLayers = { dark: darkLayer, osm: osmLayer, satellite: satLayer }
+        // baseLayers 对象用于根据用户选择快速切换底图
+
+        // ══════════════════════════════════════════════
+        //  2. 矢量数据：城市标记
+        // ══════════════════════════════════════════════
+        const cityData = [
+            { coord: [116.40, 39.90], name: '北京', desc: '政治文化中心' },
+            { coord: [121.47, 31.23], name: '上海', desc: '国际金融中心' },
+            { coord: [113.26, 23.13], name: '广州', desc: '千年商都' },
+            { coord: [114.06, 22.54], name: '深圳', desc: '科技创新之都' },
+            { coord: [104.07, 30.57], name: '成都', desc: '天府之国' },
+            { coord: [108.95, 34.26], name: '西安', desc: '十三朝古都' },
+            { coord: [106.55, 29.56], name: '重庆', desc: '山城雾都' },
+            { coord: [120.38, 36.06], name: '青岛', desc: '帆船之都' }
+        ]
+        // cityData 中保存每个城市的经纬度、名称和描述
+
+        const markerFeatures = cityData.map(c => {
+            const f = new Feature({
+                geometry: new Point(fromLonLat(c.coord)),
+                name: c.name,
+                desc: c.desc,
+                type: 'marker'
+            })
+            return f
+        })
+        // 将经纬度转换成 OL 坐标后创建 Feature，Feature 可以携带额外属性
+
+        const markerSource = new VectorSource({ features: markerFeatures })
+        // VectorSource 负责维护这些点要素，供 Marker 图层渲染
+
+        const markerStyle = new Style({
+            image: new CircleStyle({
+                radius: 7,
+                fill: new Fill({ color: '#f97316' }),
+                stroke: new Stroke({ color: '#fff', width: 2 })
+            }),
+            text: new Text({
+                text: '', // 动态设置文本内容
+                offsetY: -20,
+                fill: new Fill({ color: '#e5e7eb' }),
+                stroke: new Stroke({ color: 'rgba(0,0,0,0.6)', width: 3 }),
+                font: '13px Noto Sans SC'
+            })
+        })
+        // markerStyle 定义点样式和文字样式
+
+        const markerLayer = new VectorLayer({
+            source: markerSource,
+            style: feature => {
+                const s = markerStyle.clone()
+                s.getText().setText(feature.get('name'))
+                return s
+            }
+        })
+        // 通过 style 回调为每个要素设置自己的名称标签
+
+        // ══════════════════════════════════════════════
+        //  3. 航线路径
+        // ══════════════════════════════════════════════
+        const routeCoords = [
+            [116.40, 39.90], [115.40, 38.91], [114.51, 38.04],
+            [113.00, 37.20], [112.50, 36.06], [110.50, 35.20],
+            [108.95, 34.27], [107.00, 33.50], [106.00, 32.00], [104.07, 30.57]
+        ]
+        // routeCoords 是一个经纬度数组，表示航线上的每个中转点
+
+        const routeFeature = new Feature({
+            geometry: new LineString(routeCoords.map(c => fromLonLat(c))),
+            name: '示例航线',
+            desc: '北京 → 石家庄 → 兰州 → 西安 → 成都',
+            type: 'route'
+        })
+        // 把经纬度数组转成 OL 内部坐标后创建 LineString 要素
+
+        const routeLayer = new VectorLayer({
+            source: new VectorSource({ features: [routeFeature] }),
+            style: new Style({
+                stroke: new Stroke({ color: '#34d399', width: 3, lineDash: [10, 8] })
+            }),
+            visible: false
+        })
+        // 航线图层默认隐藏，可通过界面开关显示
+
+        // ══════════════════════════════════════════════
+        //  4. 区域多边形
+        // ══════════════════════════════════════════════
+        const regions = [
+            {
+                name: '华北区', value: 92, desc: '京津冀晋蒙',
+                coords: [[[110, 37], [120, 37], [122, 42], [117, 43], [110, 42], [110, 37]]]
+            },
+            {
+                name: '华东区', value: 88, desc: '沪苏浙皖闽赣鲁',
+                coords: [[[115, 27], [122, 27], [123, 33], [121, 36], [117, 37], [115, 33], [115, 27]]]
+            },
+            {
+                name: '华南区', value: 78, desc: '粤桂琼',
+                coords: [[[107, 18], [117, 18], [118, 23], [117, 26], [110, 27], [107, 23], [107, 18]]]
+            },
+            {
+                name: '西南区', value: 65, desc: '川渝云贵藏',
+                coords: [[[97, 22], [110, 22], [110, 30], [108, 33], [100, 34], [97, 29], [97, 22]]]
+            },
+            {
+                name: '西北区', value: 45, desc: '陕甘宁青新',
+                coords: [[[75, 35], [110, 35], [112, 40], [110, 43], [80, 45], [75, 40], [75, 35]]]
+            }
+        ]
+        // regions 定义了多个区域，coords 使用闭合环数组表示多边形顶点
+
+        const polyFeatures = regions.map(r => {
+            const ring = r.coords[0].map(c => fromLonLat(c))
+            return new Feature({
+                geometry: new Polygon([ring]),
+                name: r.name,
+                value: r.value,
+                desc: r.desc,
+                type: 'region'
+            })
+        })
+        // 将每个区域转换成 OL Polygon Feature，注意 fromLonLat 作用于每个顶点
+
+        function regionColor(v) {
+            return v > 85 ? 'rgba(6,95,70,0.35)' :
+                v > 70 ? 'rgba(4,120,87,0.35)' :
+                    v > 55 ? 'rgba(5,150,105,0.3)' :
+                        v > 40 ? 'rgba(52,211,153,0.25)' : 'rgba(110,231,183,0.2)'
+        }
+        // regionColor 根据 value 值返回不同的填充色，做成渐进效果
+
+        const polyLayer = new VectorLayer({
+            source: new VectorSource({ features: polyFeatures }),
+            style: feature => new Style({
+                fill: new Fill({ color: regionColor(feature.get('value')) }),
+                stroke: new Stroke({ color: 'rgba(34,211,238,0.4)', width: 1.5 }),
+                text: new Text({
+                    text: feature.get('name'),
+                    fill: new Fill({ color: '#e5e7eb' }),
+                    stroke: new Stroke({ color: 'rgba(0,0,0,0.5)', width: 3 }),
+                    font: '14px Noto Sans SC'
+                })
+            }),
+            visible: false
+        })
+        // 区域图层也默认隐藏，样式函数根据要素属性动态设置填充颜色和文本
+
+        // ══════════════════════════════════════════════
+        //  5. 绘制图层
+        // ══════════════════════════════════════════════
+        const drawSource = new VectorSource()
+        const drawLayer = new VectorLayer({
+            source: drawSource,
+            style: new Style({
+                fill: new Fill({ color: 'rgba(249,115,22,0.15)' }),
+                stroke: new Stroke({ color: '#f97316', width: 2 }),
+                image: new CircleStyle({
+                    radius: 5,
+                    fill: new Fill({ color: '#f97316' }),
+                    stroke: new Stroke({ color: '#fff', width: 1.5 })
+                })
+            })
+        })
+        // drawLayer 用于显示用户实际绘制的几何图形
+
+        // ══════════════════════════════════════════════
+        //  6. 创建 Popup Overlay
+        // ══════════════════════════════════════════════
+        const popupEl = document.getElementById('popup')
+        const popupOverlay = new Overlay({
+            element: popupEl,
+            positioning: 'bottom-center',
+            offset: [0, -12],
+            autoPan: true
+        })
+        // Overlay 将 DOM 元素挂载到地图上，用于显示自定义弹窗
+
+        const popupCloseBtn = document.getElementById('popup-close')
+        if (popupCloseBtn) {
+            popupCloseBtn.onclick = () => popupOverlay.setPosition(undefined)
+        } else {
+            console.warn('popup-close button not found')
+        }
+        // 为弹窗关闭按钮绑定事件，隐藏 Overlay
+
+        // ══════════════════════════════════════════════
+        //  7. 创建地图
+        // ══════════════════════════════════════════════
+        const view = new View({
+            center: fromLonLat([104, 35]),
+            zoom: 5,
+            minZoom: 2,
+            maxZoom: 19
+        })
+        // View 负责地图视角，必须先用 fromLonLat 转换中心点
+
+        const map = new Map({
+            target: 'map',
+            layers: [darkLayer, polyLayer, routeLayer, drawLayer, markerLayer],
+            view: view,
+            overlays: [popupOverlay]
+        })
+        // Map 实例绑定目标 DOM，并初始化图层、视图、Overlay
+
+        // ══════════════════════════════════════════════
+        //  8. 交互：点击弹窗
+        // ══════════════════════════════════════════════
+        map.on('click', e => {
+            const feature = map.forEachFeatureAtPixel(e.pixel, f => f)
+            // map.forEachFeatureAtPixel 会在点击点返回第一个命中的要素
+            if (feature) {
+                const coord = feature.getGeometry().getType() === 'Point'
+                    ? feature.getGeometry().getCoordinates()
+                    : e.coordinate
+                // 点要素直接使用自己的坐标，其他要素使用点击位置作为弹窗位置
+                popupOverlay.setPosition(coord)
+                document.getElementById('popup-title').textContent = feature.get('name') || '--'
+                document.getElementById('popup-desc').textContent =
+                    feature.get('desc') || feature.get('value') ? `发展指数: ${feature.get('value')}` : '无信息'
+                popupEl.style.display = 'block'
+            } else {
+                popupOverlay.setPosition(undefined)
+                popupEl.style.display = 'none'
+            }
+        })
+        // 点击非要素区时关闭弹窗
+
+        // Hover 高亮（矢量图层特有能力）
+        map.on('pointermove', e => {
+            const pixel = map.getEventPixel(e.originalEvent)
+            const hit = map.hasFeatureAtPixel(pixel)
+            map.getTargetElement().style.cursor = hit ? 'pointer' : ''
+        })
+        // pointermove 事件用于改变鼠标样式，提示用户当前可点击
+
+        // ══════════════════════════════════════════════
+        //  9. 坐标追踪控件
+        // ══════════════════════════════════════════════
+        const coordsBox = document.getElementById('coords-box')
+        map.on('pointermove', e => {
+            const [lng, lat] = toLonLat(e.coordinate)
+            coordsBox.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`
+        })
+        // 实时显示鼠标当前坐标，便于查看经纬度信息
+
+        // ══════════════════════════════════════════════
+        //  10. 状态信息更新
+        // ══════════════════════════════════════════════
+        function updateInfo() {
+            const c = toLonLat(view.getCenter())
+            document.getElementById('info-zoom').textContent = view.getZoom().toFixed(1)
+            document.getElementById('info-center').textContent = `${c[1].toFixed(2)}, ${c[0].toFixed(2)}`
+            document.getElementById('info-rotation').textContent =
+                (view.getRotation() * 180 / Math.PI).toFixed(1) + '°'
+        }
+        view.on('change:center', updateInfo)
+        view.on('change:resolution', updateInfo)
+        view.on('change:rotation', updateInfo)
+        updateInfo()
+        // 监听 view 的变化并刷新侧边栏中的地图状态信息
+
+        // ══════════════════════════════════════════════
+        //  11. 事件绑定
+        // ══════════════════════════════════════════════
+
+        // ── Tab 切换 ──
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'))
+                btn.classList.add('active')
+                document.getElementById('panel-' + btn.dataset.tab).classList.add('active')
+                setTimeout(() => map.updateSize(), 50)   // OL 的 invalidateSize
+            })
+        })
+        // 切换侧边栏选项卡时，延迟刷新地图大小，避免 OL 视图显示异常
+
+        // ── 图层开关 ──
+        document.getElementById('tog-markers').onchange = e => markerLayer.setVisible(e.target.checked)
+        document.getElementById('tog-route').onchange = e => routeLayer.setVisible(e.target.checked)
+        document.getElementById('tog-polygon').onchange = e => polyLayer.setVisible(e.target.checked)
+        // 直接通过 setVisible 控制不同矢量图层的显示/隐藏
+
+        // ── 底图切换 ──
+        document.querySelectorAll('input[name="base"]').forEach(r => {
+            r.onchange = () => {
+                map.getLayers().setAt(0, baseLayers[r.value])
+            }
+        })
+        // 底图图层始终放在图层数组的第一个位置，切换时替换索引 0
+
+        // ── 视角跳转 ──
+        document.getElementById('fly-bj').onclick = () =>
+            view.animate({ center: fromLonLat([116.40, 39.90]), zoom: 12, duration: 1500, easing: easeOut })
+        document.getElementById('fly-sh').onclick = () =>
+            view.animate({ center: fromLonLat([121.47, 31.23]), zoom: 12, duration: 1500, easing: easeOut })
+        document.getElementById('fly-cd').onclick = () =>
+            view.animate({ center: fromLonLat([104.07, 30.57]), zoom: 12, duration: 1500, easing: easeOut })
+        document.getElementById('fly-reset').onclick = () =>
+            view.animate({ center: fromLonLat([104, 35]), zoom: 5, duration: 1500, easing: easeIn, rotation: 0 })
+        // 使用 view.animate 实现平滑“飞行”效果
+
+        // ── OL 特有能力 ──
+        document.getElementById('btn-rotate').onclick = () => {
+            view.animate({ rotation: Math.PI / 4, duration: 800 })
+        }
+        document.getElementById('btn-tilt').onclick = () => {
+            view.animate({ zoom: 4, rotation: 0, duration: 600 })
+        }
+        // 演示 OL 视图旋转和缩放组合动画，产生“倾斜感”效果
+
+        // ══════════════════════════════════════════════
+        //  12. 绘制交互
+        // ══════════════════════════════════════════════
+        let drawInteraction = null
+
+        function startDraw(type) {
+            stopDraw()
+            drawInteraction = new Draw({
+                source: drawSource,
+                type: type,
+            })
+            map.addInteraction(drawInteraction)
+        }
+        // 启动绘制交互，type 可以是 Point/LineString/Polygon/Circle
+
+        function stopDraw() {
+            if (drawInteraction) {
+                map.removeInteraction(drawInteraction)
+                drawInteraction = null
+            }
+            document.querySelectorAll('[data-draw]').forEach(b => b.classList.remove('active-mode'))
+        }
+        // 停止当前绘制，并清除按钮高亮状态
+
+        document.querySelectorAll('[data-draw]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('[data-draw]').forEach(b => b.classList.remove('active-mode'))
+                btn.classList.add('active-mode')
+                startDraw(btn.dataset.draw)
+            })
+        })
+        // 点击绘制按钮后启动对应类型绘制
+
+        document.getElementById('btn-draw-clear').onclick = () => {
+            stopDraw()
+            drawSource.clear()
+        }
+        // 清空绘制图层中所有要素
+    </script>
+</body>
+
+</html>
