@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MapLibre 入门</title>
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #map {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #fly-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+        }
+
+        #ease-btn {
+            position: fixed;
+            top: 40px;
+            left: 10px;
+        }
+
+        #jump-btn {
+            position: fixed;
+            top: 70px;
+            left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <button id="fly-btn">飞到上海</button>
+    <button id="ease-btn">平滑移动到北京</button>
+    <button id="jump-btn">瞬间跳转到广州</button>
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <script>
+        const map = new maplibregl.Map({
+            container: 'map',
+            // 不需要 token！
+            // style: 'https://demotiles.maplibre.org/style.json',  // 演示瓦片
+            style: 'https://tiles.openfreemap.org/styles/liberty', // OpenFreeMap（免费、开源、无需注册）
+            center: [116.397, 39.908],   // 北京
+            zoom: 10
+        });
+
+        // 点击按钮事件
+        document.getElementById('fly-btn').addEventListener('click', () => {
+            map.flyTo({
+                center: [121.473, 31.230],
+                zoom: 14,
+                pitch: 45,
+                bearing: 90,
+                duration: 3000
+            });
+        });
+
+        // 点击按钮事件
+        document.getElementById('ease-btn').addEventListener('click', () => {
+            map.easeTo({
+                center: [116.397, 39.908],
+                zoom: 15,
+                duration: 2000
+            });
+        });
+
+        // 点击按钮事件
+        document.getElementById('jump-btn').addEventListener('click', () => {
+            map.jumpTo({
+                center: [113.264, 23.129],
+                zoom: 12
+            });
+        });
+
+        // // 飞到某个位置
+        // map.flyTo({
+        //     center: [121.473, 31.230],
+        //     zoom: 14,
+        //     pitch: 45,
+        //     bearing: 90,
+        //     duration: 3000
+        // });
+
+        // // 平滑移动
+        // map.easeTo({
+        //     center: [116.397, 39.908],
+        //     zoom: 15,
+        //     duration: 2000
+        // });
+
+        // // 瞬间跳转
+        // map.jumpTo({
+        //     center: [113.264, 23.129],
+        //     zoom: 12
+        // });
+    </script>
+</body>
+
+</html>

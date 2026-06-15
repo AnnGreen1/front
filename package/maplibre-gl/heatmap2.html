@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MapLibre 热力图 - 地震分布</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0a1a; overflow: hidden; }
+    #map { width: 100vw; height: 100vh; }
+    .panel {
+      position: absolute; top: 16px; left: 16px; z-index: 10;
+      background: rgba(10, 10, 26, 0.85); backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;
+      padding: 20px; color: #ccc; font-family: 'Courier New', monospace;
+      min-width: 220px;
+    }
+    .panel h2 { color: #e8c547; font-size: 14px; margin-bottom: 12px; letter-spacing: 1px; }
+    .stat { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; }
+    .stat .label { color: #888; }
+    .stat .value { color: #f0ece4; font-weight: bold; }
+    .legend { margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); }
+    .legend-bar {
+      width: 100%; height: 10px; border-radius: 5px; margin-top: 6px;
+      background: linear-gradient(to right, rgba(33,102,172,0.8), rgb(103,169,207), rgb(209,229,240), rgb(253,219,199), rgb(239,138,98), rgb(178,24,43));
+    }
+    .legend-labels { display: flex; justify-content: space-between; font-size: 10px; color: #666; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <h2>EARTHQUAKE HEATMAP</h2>
+    <div class="stat"><span class="label">Total Events</span><span class="value" id="total">10,000</span></div>
+    <div class="stat"><span class="label">Magnitude Range</span><span class="value">1.0 - 9.0</span></div>
+    <div class="stat"><span class="label">Depth Range</span><span class="value">0 - 700 km</span></div>
+    <div class="stat"><span class="label">Zoom Level</span><span class="value" id="zoom">2</span></div>
+    <div class="legend">
+      <div style="font-size:11px; color:#888;">Density</div>
+      <div class="legend-bar"></div>
+      <div class="legend-labels"><span>Low</span><span>High</span></div>
+    </div>
+  </div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script>
+    // ========================================
+    // 生成 10000 个合理分布的地震点
+    // ========================================
+
+    // 随机数工具
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+
+    // 高斯随机数（正态分布，让数据更集中）
+    function gaussian(mean, stddev) {
+      const u1 = Math.random();
+      const u2 = Math.random();
+      const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+      return mean + z * stddev;
+    }
+
+    // 主震源带定义：每条带描述一个地震活跃区域
+    // 格式：[经度中心, 纬度中心, 经度标准差, 纬度标准差, 权重(点数占比)]
+    const seismicZones = [
+      // 环太平洋 - 西侧
+      { lng: 143.0, lat: 38.0,  lngStd: 2.5, latStd: 4.0, weight: 0.10 },  // 日本东北
+      { lng: 130.0, lat: 33.0,  lngStd: 2.0, latStd: 2.0, weight: 0.04 },  // 日本西南
+      { lng: 121.0, lat: 23.5,  lngStd: 1.5, latStd: 1.5, weight: 0.03 },  // 台湾
+      { lng: 125.0, lat: 12.0,  lngStd: 2.0, latStd: 3.0, weight: 0.05 },  // 菲律宾
+      { lng: 110.0, lat: -7.5,  lngStd: 3.0, latStd: 1.5, weight: 0.08 },  // 印尼-爪哇
+      { lng: 130.0, lat: -5.0,  lngStd: 5.0, latStd: 3.0, weight: 0.06 },  // 印尼-巴布亚
+
+      // 环太平洋 - 东侧
+      { lng: -75.0, lat: -15.0, lngStd: 2.0, latStd: 8.0, weight: 0.08 },  // 南美西海岸
+      { lng: -100.0, lat: 17.0, lngStd: 2.0, latStd: 4.0, weight: 0.04 },  // 墨西哥
+      { lng: -120.0, lat: 37.0, lngStd: 2.0, latStd: 3.0, weight: 0.03 },  // 美国加州
+
+      // 阿尔卑斯-喜马拉雅带
+      { lng: 75.0,  lat: 34.0,  lngStd: 3.0, latStd: 2.0, weight: 0.05 },  // 克什米尔
+      { lng: 85.0,  lat: 28.0,  lngStd: 5.0, latStd: 2.0, weight: 0.06 },  // 尼泊尔-西藏
+      { lng: 52.0,  lat: 35.0,  lngStd: 4.0, latStd: 3.0, weight: 0.06 },  // 伊朗
+
+      // 中国主要地震带
+      { lng: 103.0, lat: 30.5,  lngStd: 2.0, latStd: 2.0, weight: 0.04 },  // 四川
+      { lng: 98.0,  lat: 25.0,  lngStd: 3.0, latStd: 3.0, weight: 0.03 },  // 云南
+      { lng: 106.0, lat: 38.5,  lngStd: 2.0, latStd: 2.0, weight: 0.02 },  // 宁夏
+
+      // 大洋中脊（全球分散）
+      { lng: -30.0, lat: 0.0,   lngStd: 15.0, latStd: 10.0, weight: 0.06 },  // 大西洋中脊
+      { lng: 65.0,  lat: -20.0, lngStd: 12.0, latStd: 10.0, weight: 0.04 },  // 印度洋中脊
+
+      // 地中海带
+      { lng: 25.0,  lat: 37.0,  lngStd: 5.0, latStd: 2.0, weight: 0.03 },  // 希腊-土耳其
+    ];
+
+    // 根据震源带生成地震点
+    function generateEarthquakes(count) {
+      const features = [];
+
+      // 先按权重分配每个带的点数
+      const totalWeight = seismicZones.reduce((s, z) => s + z.weight, 0);
+
+      for (const zone of seismicZones) {
+        const zoneCount = Math.round(count * (zone.weight / totalWeight));
+
+        for (let i = 0; i < zoneCount; i++) {
+          // 高斯分布生成坐标
+          let lng = gaussian(zone.lng, zone.lngStd);
+          let lat = gaussian(zone.lat, zone.lngStd);
+
+          // 经度边界：-180 ~ 180
+          if (lng > 180) lng -= 360;
+          if (lng < -180) lng += 360;
+
+          // 纬度边界：-85 ~ 85
+          lat = Math.max(-85, Math.min(85, lat));
+
+          // 震级：古登堡-里希特定律（小震多、大震少）
+          // M = Mmax - log10(rand) * b，b ≈ 1.0
+          const magnitude = Math.max(1.0, Math.min(9.0,
+            9.0 - (-Math.log10(Math.random())) * 1.5
+          ));
+
+          // 深度：浅震多、深震少
+          const depthRand = Math.random();
+          let depth;
+          if (depthRand < 0.7)      depth = rand(0, 70);       // 浅源 70%
+          else if (depthRand < 0.9) depth = rand(70, 300);     // 中源 20%
+          else                      depth = rand(300, 700);     // 深源 10%
+
+          // 时间：随机过去一年内
+          const timestamp = Date.now() - rand(0, 365 * 24 * 60 * 60 * 1000);
+
+          features.push({
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: [parseFloat(lng.toFixed(3)), parseFloat(lat.toFixed(3))]
+            },
+            properties: {
+              magnitude: parseFloat(magnitude.toFixed(1)),
+              depth: Math.round(depth),
+              timestamp: Math.round(timestamp)
+            }
+          });
+        }
+      }
+
+      return {
+        type: 'FeatureCollection',
+        features
+      };
+    }
+
+    const earthquakeData = generateEarthquakes(10000);
+    console.log(`生成 ${earthquakeData.features.length} 个地震点`);
+
+    // ========================================
+    // 初始化地图
+    // ========================================
+
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: {
+        version: 8,
+        sources: {
+          'dark-tiles': {
+            type: 'raster',
+            tiles: ['https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'],
+            tileSize: 256,
+            attribution: '&copy; CartoDB &copy; OpenStreetMap'
+          }
+        },
+        layers: [
+          { id: 'dark-bg', type: 'background', paint: { 'background-color': '#0a0a1a' } },
+          { id: 'dark-tiles', type: 'raster', source: 'dark-tiles', paint: { 'raster-opacity': 0.6 } }
+        ],
+        glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf'
+      },
+      center: [120, 20],
+      zoom: 2,
+      pitch: 0,
+      bearing: 0,
+      maxZoom: 18,
+      minZoom: 1
+    });
+
+    // 缩放级别显示
+    map.on('zoom', () => {
+      document.getElementById('zoom').textContent = map.getZoom().toFixed(1);
+    });
+
+    // ========================================
+    // 添加热力图图层
+    // ========================================
+
+    map.on('load', () => {
+
+      // 数据源
+      map.addSource('earthquakes', {
+        type: 'geojson',
+        data: earthquakeData
+      });
+
+      // 热力图层
+      map.addLayer({
+        id: 'heatmap-layer',
+        type: 'heatmap',
+        source: 'earthquakes',
+        maxzoom: 9,
+        paint: {
+          // 权重：震级越大，权重越高
+          'heatmap-weight': [
+            'interpolate', ['linear'], ['get', 'magnitude'],
+            1, 0,
+            3, 0.3,
+            5, 0.6,
+            7, 0.8,
+            9, 1
+          ],
+
+          // 强度：随缩放级别增大而增强
+          'heatmap-intensity': [
+            'interpolate', ['linear'], ['zoom'],
+            0, 1,
+            9, 3
+          ],
+
+          // 颜色渐变
+          'heatmap-color': [
+            'interpolate', ['linear'], ['heatmap-density'],
+            0,     'rgba(0, 0, 40, 0)',
+            0.1,   'rgba(33, 102, 172, 0.4)',
+            0.3,   'rgba(103, 169, 207, 0.6)',
+            0.5,   'rgba(209, 229, 170, 0.7)',
+            0.7,   'rgba(253, 204, 92, 0.8)',
+            0.85,  'rgba(239, 138, 98, 0.9)',
+            1,     'rgba(178, 24, 43, 1)'
+          ],
+
+          // 半径：随缩放增大
+          'heatmap-radius': [
+            'interpolate', ['linear'], ['zoom'],
+            0, 2,
+            3, 8,
+            6, 16,
+            9, 30
+          ],
+
+          // 透明度：高缩放时淡出，切换到散点层
+          'heatmap-opacity': [
+            'interpolate', ['linear'], ['zoom'],
+            7, 1,
+            9, 0
+          ]
+        }
+      });
+
+      // 高缩放级别的散点层（zoom >= 9 时替代热力图）
+      map.addLayer({
+        id: 'earthquake-points',
+        type: 'circle',
+        source: 'earthquakes',
+        minzoom: 9,
+        paint: {
+          'circle-radius': [
+            'interpolate', ['linear'], ['get', 'magnitude'],
+            1, 2,
+            5, 6,
+            7, 10,
+            9, 16
+          ],
+          'circle-color': [
+            'interpolate', ['linear'], ['get', 'magnitude'],
+            1, 'rgba(33, 102, 172, 0.7)',
+            4, 'rgba(103, 169, 207, 0.7)',
+            6, 'rgba(253, 204, 92, 0.8)',
+            8, 'rgba(239, 138, 98, 0.9)',
+            9, 'rgba(178, 24, 43, 1)'
+          ],
+          'circle-stroke-width': 1,
+          'circle-stroke-color': 'rgba(255,255,255,0.3)',
+          'circle-opacity': [
+            'interpolate', ['linear'], ['zoom'],
+            9, 0,
+            10, 0.8
+          ]
+        }
+      });
+
+      // 点击弹窗
+      map.on('click', 'earthquake-points', (e) => {
+        const props = e.features[0].properties;
+        const date = new Date(props.timestamp).toLocaleDateString('zh-CN');
+        new maplibregl.Popup({
+          closeButton: false,
+          className: 'quake-popup'
+        })
+          .setLngLat(e.features[0].geometry.coordinates)
+          .setHTML(`
+            <div style="font-family:monospace; padding:8px; background:#1a1a2e; color:#f0ece4; border-radius:6px; font-size:12px;">
+              <div style="font-size:16px; font-weight:bold; color:#e8c547; margin-bottom:6px;">
+                M ${props.magnitude}
+              </div>
+              <div>Depth: ${props.depth} km</div>
+              <div>Date: ${date}</div>
+              <div style="color:#666; margin-top:4px;">
+                ${e.features[0].geometry.coordinates[0].toFixed(3)},
+                ${e.features[0].geometry.coordinates[1].toFixed(3)}
+              </div>
+            </div>
+          `)
+          .addTo(map);
+      });
+
+      map.on('mouseenter', 'earthquake-points', () => {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+      map.on('mouseleave', 'earthquake-points', () => {
+        map.getCanvas().style.cursor = '';
+      });
+    });
+  </script>
+</body>
+</html>

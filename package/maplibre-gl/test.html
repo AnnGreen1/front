@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #map {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script>
+        const map = new maplibregl.Map({
+            container: 'map',
+            style: 'https://tiles.openfreemap.org/styles/liberty', // OpenFreeMap（免费、开源、无需注册）
+            // style: 'https://demotiles.maplibre.org/style.json',  // 演示瓦片
+            // style: 'https://demotiles.maplibre.org/style.json', // MapLibre 官方演示瓦片（全球，OpenStreetMap 数据）
+
+            center: [104, 35],
+            zoom: 5,
+            pitch: 30 // 倾斜角度
+        })
+
+        // 导航控件（缩放 +/- 和旋转）
+        map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+        // 比例尺
+        map.addControl(new maplibregl.ScaleControl(), 'bottom-left');
+
+        // 全屏
+        map.addControl(new maplibregl.FullscreenControl(), 'top-right');
+
+        // 定位
+        map.addControl(
+            new maplibregl.GeolocateControl({
+                positionOptions: { enableHighAccuracy: true },
+                trackUserLocation: true
+            }),
+            'top-right'
+        );
+
+
+        // 基础标记
+        // new maplibregl.Marker()
+        //     .setLngLat([116.397, 39.908])
+        //     .addTo(map);
+
+        // 带弹窗的标记
+        // const popup = new maplibregl.Popup({ offset: 25 })
+        //     .setHTML('<h3>北京</h3><p>中国首都</p>');
+
+        // new maplibregl.Marker({ color: '#e74c3c' })
+        //     .setLngLat([116.397, 39.908])
+        //     .setPopup(popup)
+        //     .addTo(map);
+
+        // 自定义标记
+        // const el = document.createElement('div');
+        // el.style.width = '30px';
+        // el.style.height = '30px';
+        // el.style.backgroundImage = 'url(./marker.png)';
+        // el.style.backgroundSize = 'cover';
+
+        // new maplibregl.Marker({ element: el })
+        //     .setLngLat([116.397, 39.908])
+        //     .addTo(map);
+
+        // // 可拖拽标记
+        const marker = new maplibregl.Marker({ draggable: true })
+            .setLngLat([116.397, 39.908])
+            .addTo(map);
+
+        marker.on('dragend', () => {
+            const { lng, lat } = marker.getLngLat();
+            console.log(`拖拽后坐标: ${lng}, ${lat}`);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MapLibre 入门</title>
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #map {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <script>
+        const map = new maplibregl.Map({
+            container: 'map',
+            // 不需要 token！
+            // style: 'https://demotiles.maplibre.org/style.json',  // 演示瓦片
+            style: 'https://tiles.openfreemap.org/styles/liberty', // OpenFreeMap（免费、开源、无需注册）
+            center: [116.397, 39.908],   // 北京
+            zoom: 10
+        });
+        
+        map.on('load', () => {
+            map.addLayer({
+                id: '3d-buildings',
+                source: 'openmaptiles',
+                'source-layer': 'building',
+                type: 'fill-extrusion',
+                minzoom: 14,
+                paint: {
+                    'fill-extrusion-color': '#aaa',
+                    'fill-extrusion-height': [
+                        'interpolate', ['linear'], ['zoom'],
+                        14, 0,
+                        15, ['get', 'render_height']
+                    ],
+                    'fill-extrusion-base': ['get', 'render_min_height'],
+                    'fill-extrusion-opacity': 0.6
+                }
+            });
+        });
+
+    </script>
+</body>
+
+</html>
