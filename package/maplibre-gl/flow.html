@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MapLibre 入门</title>
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #map {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <script>
+        const map = new maplibregl.Map({
+            container: 'map',
+            // 不需要 token！
+            // style: 'https://demotiles.maplibre.org/style.json',  // 演示瓦片
+            style: 'https://tiles.openfreemap.org/styles/liberty', // OpenFreeMap（免费、开源、无需注册）
+            center: [116.397, 39.908],   // 北京
+            zoom: 10
+        });
+
+        // 添加导航控制（缩放、旋转等）
+        map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+        map.on('load', () => {
+            // 定义多条路由数据，包括起点、终点和流量值
+            // from: [经度, 纬度]，to: [经度, 纬度]，value: 流量大小
+            const routes = [
+                { from: [116.397, 39.908], to: [121.473, 31.230], value: 150 },  // 北京 -> 上海
+                { from: [116.397, 39.908], to: [113.264, 23.129], value: 80 },   // 北京 -> 广州
+                { from: [116.397, 39.908], to: [104.065, 30.659], value: 60 },   // 北京 -> 成都
+                { from: [121.473, 31.230], to: [113.264, 23.129], value: 100 }   // 上海 -> 广州
+            ];
+
+            // 为每条线路生成曲线坐标（贝塞尔曲线近似）
+            const features = routes.map(route => {
+                const coords = [];
+                const steps = 50;  // 分 50 段线段来近似曲线
+                for (let i = 0; i <= steps; i++) {
+                    // t 为参数，从 0 到 1，表示沿着线路的进度
+                    const t = i / steps;
+                    // 线性插值计算中间经纬度
+                    const lng = route.from[0] + (route.to[0] - route.from[0]) * t;
+                    const lat = route.from[1] + (route.to[1] - route.from[1]) * t;
+                    // 加入弧度（抛物线弯曲），使直线变成弧线
+                    // Math.sin(Math.PI * t) 在 t=0 和 t=1 时为 0，在 t=0.5 时最大
+                    const arc = Math.sin(Math.PI * t) * 2;
+                    coords.push([lng, lat + arc]);
+                }
+                return {
+                    type: 'Feature',
+                    geometry: { type: 'LineString', coordinates: coords },
+                    properties: { value: route.value }
+                };
+            });
+
+            // 将生成的线路特征添加为 GeoJSON 数据源
+            map.addSource('flows', {
+                type: 'geojson',
+                data: { type: 'FeatureCollection', features }
+            });
+
+            // 绘制流动线路层（虚线样式）
+            map.addLayer({
+                id: 'flow-line',
+                type: 'line',
+                source: 'flows',
+                paint: {
+                    'line-color': '#e74c3c',      // 红色线条
+                    'line-width': 2,               // 线宽 2px
+                    'line-dasharray': [2, 2],      // 虚线模式：2px 实线 + 2px 空隙
+                    'line-opacity': 0.8            // 透明度 80%
+                }
+            });
+
+            // 动画：通过持续更改 dasharray 偏移来产生流动效果
+            // dasharray 的动态变化使虚线显示为流动的效果
+            let step = 0;
+            function animate() {
+                step = (step + 1) % 100;  // 步数循环 0-99
+                // 改变 dasharray 的值，使虚线向前移动
+                map.setPaintProperty('flow-line', 'line-dasharray', [
+                    step / 50,           // 第一个值越来越大
+                    (100 - step) / 50    // 第二个值越来越小
+                ]);
+                // 使用 requestAnimationFrame 来实现 60fps 的流畅动画
+                requestAnimationFrame(animate);
+            }
+            animate();
+        });
+    </script>
+</body>
+
+</html>

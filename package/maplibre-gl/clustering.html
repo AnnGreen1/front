@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MapLibre 入门</title>
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #map {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <script>
+        const map = new maplibregl.Map({
+            container: 'map',
+            // 不需要 token！
+            // style: 'https://demotiles.maplibre.org/style.json',  // 演示瓦片
+            style: 'https://tiles.openfreemap.org/styles/liberty', // OpenFreeMap（免费、开源、无需注册）
+            center: [116.397, 39.908],   // 北京
+            zoom: 10
+        });
+
+        // 添加导航控件
+        map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+        map.on('load', () => {
+            map.addSource('stations', {
+                type: 'geojson',
+                data: '/api/stations',   // 数千个站点
+                cluster: true,
+                clusterMaxZoom: 14,
+                clusterRadius: 50
+            });
+
+            // 聚合圆（大圈）
+            map.addLayer({
+                id: 'clusters',
+                type: 'circle',
+                source: 'stations',
+                filter: ['has', 'point_count'],
+                paint: {
+                    'circle-color': [
+                        'step', ['get', 'point_count'],
+                        '#51bbd6', 100,
+                        '#f1f075', 750,
+                        '#f28cb1'
+                    ],
+                    'circle-radius': [
+                        'step', ['get', 'point_count'],
+                        20, 100,
+                        30, 750,
+                        40
+                    ]
+                }
+            });
+
+            // 聚合数量文字
+            map.addLayer({
+                id: 'cluster-count',
+                type: 'symbol',
+                source: 'stations',
+                filter: ['has', 'point_count'],
+                layout: {
+                    'text-field': '{point_count_abbreviated}',
+                    'text-size': 12
+                }
+            });
+
+            // 未聚合的单个点
+            map.addLayer({
+                id: 'unclustered-point',
+                type: 'circle',
+                source: 'stations',
+                filter: ['!', ['has', 'point_count']],
+                paint: {
+                    'circle-color': '#11b4da',
+                    'circle-radius': 6,
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#fff'
+                }
+            });
+
+            // 点击聚合圆，缩放到其范围
+            map.on('click', 'clusters', (e) => {
+                const features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
+                const clusterId = features[0].properties.cluster_id;
+                map.getSource('stations').getClusterExpansionZoom(clusterId, (err, zoom) => {
+                    if (err) return;
+                    map.easeTo({
+                        center: features[0].geometry.coordinates,
+                        zoom: zoom
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

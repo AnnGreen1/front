@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MapLibre 入门</title>
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #map {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <script>
+        const map = new maplibregl.Map({
+            container: 'map',
+            // 不需要 token！
+            // style: 'https://demotiles.maplibre.org/style.json',  // 演示瓦片
+            style: 'https://tiles.openfreemap.org/styles/liberty', // OpenFreeMap（免费、开源、无需注册）
+            center: [116.397, 39.908],   // 北京
+            zoom: 10
+        });
+
+        // 添加导航控件
+        map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+        map.on('load', () => {
+            // 加载 geojson 数据文件
+            // 该文件应为标准 GeoJSON FeatureCollection，包含 provinces / 省份边界
+            fetch('../echarts/rpc-geojson.json')
+                .then(res => res.json())
+                .then(geojson => {
+                    // 为每个要素补充唯一 id，避免 feature-state hover 失效
+                    geojson.features = geojson.features.map((feature, index) => {
+                        if (feature.id == null) {
+                            feature.id = feature.properties && feature.properties.adcode != null
+                                ? feature.properties.adcode
+                                : index;
+                        }
+                        return feature;
+                    });
+
+                    console.log(geojson.features)
+
+                    // 将 geojson 作为 MapLibre 数据源添加到地图
+                    map.addSource('provinces', { type: 'geojson', data: geojson });
+
+                    // 绘制省份填充层
+                    map.addLayer({
+                        id: 'province-fill',
+                        type: 'fill',
+                        source: 'provinces',
+                        paint: {
+                            'fill-color': [
+                                'case',
+                                ['boolean', ['feature-state', 'hover'], false],
+                                '#fca207', // hover 高亮颜色
+                                '#6baed6'  // 默认填充颜色
+                            ],
+                            'fill-opacity': 0.7
+                        }
+                    });
+
+                    // 绘制省份边界线
+                    map.addLayer({
+                        id: 'province-outline',
+                        type: 'line',
+                        source: 'provinces',
+                        paint: {
+                            'line-color': '#fff',
+                            'line-width': 1
+                        }
+                    });
+
+                    // 当前悬停要素 id，用于清除上一个悬停状态
+                    let hoveredId = null;
+
+                    map.on('mousemove', 'province-fill', (e) => {
+                        if (e.features.length > 0) {
+                            if (hoveredId !== null) {
+                                map.setFeatureState(
+                                    { source: 'provinces', id: hoveredId },
+                                    { hover: false }
+                                );
+                            }
+                            hoveredId = e.features[0].id;
+                            map.setFeatureState(
+                                { source: 'provinces', id: hoveredId },
+                                { hover: true }
+                            );
+                        }
+                    });
+
+                    // 鼠标离开填充层时，清除 hover 状态
+                    map.on('mouseleave', 'province-fill', () => {
+                        if (hoveredId !== null) {
+                            map.setFeatureState(
+                                { source: 'provinces', id: hoveredId },
+                                { hover: false }
+                            );
+                        }
+                        hoveredId = null;
+                    });
+
+                    // 点击省份弹出信息窗
+                    map.on('click', 'province-fill', (e) => {
+                        const props = e.features[0].properties || {};
+                        new maplibregl.Popup()
+                            .setLngLat(e.lngLat)
+                            .setHTML(`
+            <h3>${props.name || '未知省份'}</h3>
+            <p>Adcode: ${props.adcode || ''}</p>
+            <p>级别: ${props.level || ''}</p>
+            <p>子级数量: ${props.childrenNum != null ? props.childrenNum : ''}</p>
+          `)
+                            .addTo(map);
+                    });
+                });
+        });
+    </script>
+</body>
+
+</html>

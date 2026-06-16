@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MapLibre 入门</title>
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #map {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <script>
+        const map = new maplibregl.Map({
+            container: 'map',
+            // 不需要 token！
+            // style: 'https://demotiles.maplibre.org/style.json',  // 演示瓦片
+            style: 'https://tiles.openfreemap.org/styles/liberty', // OpenFreeMap（免费、开源、无需注册）
+            center: [116.397, 39.908],   // 北京
+            zoom: 10
+        });
+
+        map.on('load', () => {
+            // 轨迹线数据源
+            map.addSource('trace', {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    geometry: { type: 'LineString', coordinates: [] }
+                }
+            });
+
+            // 画轨迹线
+            map.addLayer({
+                id: 'trace-line',
+                type: 'line',
+                source: 'trace',
+                paint: {
+                    'line-color': '#e74c3c',
+                    'line-width': 3
+                }
+            });
+
+            // 车辆标记
+            const carEl = document.createElement('div');
+            carEl.style.width = '20px';
+            carEl.style.height = '20px';
+            carEl.style.background = '#e74c3c';
+            carEl.style.borderRadius = '50%';
+            carEl.style.border = '3px solid #fff';
+
+            const carMarker = new maplibregl.Marker({ element: carEl })
+                .setLngLat([116.397, 39.908])
+                .addTo(map);
+
+            // 模拟实时坐标更新
+            const coordinates = [
+                [116.397, 39.908], [116.402, 39.910], [116.408, 39.915],
+                [116.415, 39.918], [116.420, 39.922], [116.428, 39.925],
+                [116.435, 39.930], [116.442, 39.935], [116.450, 39.938]
+            ];
+
+            let i = 0;
+            const traceCoords = [];
+
+            function moveCar() {
+                if (i >= coordinates.length) return;
+
+                const coord = coordinates[i];
+                traceCoords.push(coord);
+
+                // 更新车辆位置
+                carMarker.setLngLat(coord);
+
+                // 更新轨迹线
+                map.getSource('trace').setData({
+                    type: 'Feature',
+                    geometry: { type: 'LineString', coordinates: traceCoords }
+                });
+
+                // 地图跟随车辆移动
+                map.panTo(coord, { duration: 500 });
+
+                i++;
+                setTimeout(moveCar, 1000);
+            }
+
+            moveCar();
+        });
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MapLibre 入门</title>
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #map {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <script>
+        const map = new maplibregl.Map({
+            container: 'map',
+            // 不需要 token！
+            // style: 'https://demotiles.maplibre.org/style.json',  // 演示瓦片
+            style: 'https://tiles.openfreemap.org/styles/liberty', // OpenFreeMap（免费、开源、无需注册）
+            center: [116.397, 39.908],   // 北京
+            zoom: 10
+        });
+
+        // 添加导航控制（缩放、旋转等）
+        map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+        map.on('load', () => {
+            // 获取风场数据，示例 JSON 为 wind-data-demo.json
+            // 数据格式为：
+            // {
+            //   particles: [
+            //     { lng, lat, u, v, color, opacity },
+            //     ...
+            //   ]
+            // }
+            // 其中 u、v 表示经纬度方向的速度分量；color 为 RGB 字符串；opacity 为透明度
+            fetch('./wind-data-demo.json')
+                .then(res => res.json())
+                .then(windData => {
+                    // 创建 Canvas 叠加层
+                    const canvasLayer = {
+                        id: 'wind-canvas',
+                        type: 'custom',
+                        onAdd: function (map, gl) {
+                            this.map = map; // 保存 map 实例，后续 render 中使用
+                            this.canvas = document.createElement('canvas');
+                            this.canvas.style.position = 'absolute';
+                            this.canvas.style.top = '0';
+                            this.canvas.style.left = '0';
+                            this.map.getCanvasContainer().appendChild(this.canvas);
+                            this.ctx = this.canvas.getContext('2d');
+                        },
+                        render: function (gl, matrix) {
+                            const canvas = this.map.getCanvas();
+                            this.canvas.width = canvas.width;
+                            this.canvas.height = canvas.height;
+
+                            const ctx = this.ctx;
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                            // 在 Canvas 上绘制粒子
+                            windData.particles.forEach(p => {
+                                const pixel = this.map.project([p.lng, p.lat]);
+                                ctx.beginPath();
+                                ctx.arc(pixel.x, pixel.y, 1.5, 0, Math.PI * 2);
+                                ctx.fillStyle = `rgba(${p.color}, ${p.opacity})`;
+                                ctx.fill();
+
+                                // 根据速度分量 u/v 移动粒子
+                                p.lng += p.u * 0.01;
+                                p.lat += p.v * 0.01;
+                            });
+
+                            this.map.triggerRepaint();  // 持续重绘
+                        }
+                    };
+
+                    map.addLayer(canvasLayer);
+                });
+        });
+    </script>
+</body>
+
+</html>
