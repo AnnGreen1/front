@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MapLibre 入门</title>
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #map {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="controls">
+        <select id="style-switcher">
+            <option value="https://tiles.openfreemap.org/styles/liberty">OpenFreeMap</option>
+            <option value="https://demotiles.maplibre.org/style.json">MapLibre</option>
+        </select>
+        <button id="toggle-buildings">切换建筑</button>
+    </div>
+    <div id="map"></div>
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <script>
+        const map = new maplibregl.Map({
+            container: 'map',
+            // 不需要 token！
+            // style: 'https://demotiles.maplibre.org/style.json',  // 演示瓦片
+            style: 'https://tiles.openfreemap.org/styles/liberty', // OpenFreeMap（免费、开源、无需注册）
+            center: [116.397, 39.908],   // 北京
+            zoom: 10
+        });
+
+        // 添加导航控件
+        map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+
+        // 卫星图 + 路网叠加
+        map.on('load', () => {
+
+            map.addLayer({
+                id: '3d-buildings',
+                source: 'openmaptiles',
+                'source-layer': 'building',
+                type: 'fill-extrusion',
+                minzoom: 14,
+                paint: {
+                    'fill-extrusion-color': '#aaa',
+                    'fill-extrusion-height': [
+                        'interpolate', ['linear'], ['zoom'],
+                        14, 0,
+                        15, ['get', 'render_height']
+                    ],
+                    'fill-extrusion-base': ['get', 'render_min_height'],
+                    'fill-extrusion-opacity': 0.6
+                }
+            });
+
+            // 可以动态切换底图样式
+            document.getElementById('style-switcher').addEventListener('change', (e) => {
+                map.setStyle(e.target.value);
+            });
+
+            // 图层显隐控制
+            document.getElementById('toggle-buildings').addEventListener('click', () => {
+                const visibility = map.getLayoutProperty('3d-buildings', 'visibility');
+                map.setLayoutProperty(
+                    '3d-buildings',
+                    'visibility',
+                    visibility === 'visible' ? 'none' : 'visible'
+                );
+            });
+        });
+    </script>
+</body>
+
+</html>

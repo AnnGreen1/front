@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Three.js 入门</title>
+    <style>
+        * {
+            margin: 0;
+        }
+
+        body {
+            overflow: hidden;
+            background: #000;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // 1. 场景（舞台）
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color("gray");
+
+        // 2. 相机
+        const camera = new THREE.PerspectiveCamera(
+            75, // 视角
+            window.innerWidth / window.innerHeight, // 宽高比
+            0.1, // 近裁剪面
+            1000, // 远裁剪面
+        );
+        camera.position.set(0, 0, 5);
+
+        // 3. 渲染器
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement); // 把 canvas 加到页面
+
+        // ==========================================
+        // 4. 物体（演员）
+        // ==========================================
+        const geometry = new THREE.TorusKnotGeometry(1, 0.3, 100, 16);
+        const material = new THREE.MeshBasicMaterial({ color: 0xe8c547 });
+        const cube = new THREE.Mesh(geometry, material); // 网格 = 几何体 + 材质
+        scene.add(cube);
+
+
+        // 点光源（像灯泡，向四周发光）
+        const pointLight = new THREE.PointLight(0xff0000, 1, 50);
+        pointLight.position.set(2, 3, 4);
+        scene.add(pointLight);
+        // ==========================================
+        // 5. 渲染场景
+        // ==========================================
+        // 如果场景完全静态（物体不动、相机不动），只调用一次 render() 就够了
+        // 但如果需要动画（旋转、交互），就需要用 requestAnimationFrame 循环
+
+        // 方案1：静态渲染（只渲染一次）
+        //   renderer.render(scene, camera);
+
+        // 方案2：动画循环（持续渲染，支持动画）
+        function animate() {
+            requestAnimationFrame(animate); // 浏览器每一帧调用一次（约60次/秒）
+
+            // 让球体旋转
+            cube.rotation.x += 0.01; // 绕 X 轴旋转
+            cube.rotation.y += 0.01; // 绕 Y 轴旋转
+
+            renderer.render(scene, camera); // 渲染场景（绘制当前帧）
+        }
+        animate();
+    </script>
+</body>
+
+</html>
